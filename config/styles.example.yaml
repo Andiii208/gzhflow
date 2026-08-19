@@ -1,0 +1,28 @@
+# gzhflow 文风路由表配置模板
+# 用法：复制为 config/styles.yaml，替换成你自己的文风定义。
+# 写作阶段（阶段②）会先查这张表：根据用户话题关键词 → 匹配文风 → 按文风特征写作。
+# 每个风格的详细写法见 examples/styles/（有空白模板 + 示例）。
+
+# default_style: 匹配不到任何关键词时的兜底风格名（填下面 styles 里的一个 name）
+default_style: "plain"
+
+styles:
+  # ── 你的风格列表（name 唯一）──
+  - name: "plain"
+    description: "朴素白描：从具体场景切入，思考当戏写，极短段落"
+    keywords:              # 命中任一关键词则匹配此风格
+      - "日常"
+      - "今天"
+      - "遇到"
+      - "记录"
+    characteristics:       # 风格特征（写作时参考）
+      title: "为什么+日常现象"
+      opening: "场景切入 + 个人困惑"
+      persona: "我"          # 人称：我 / 你 / 我们
+      paragraph: "2-6 行短段落，关键句独立成段"
+      tone: "自嘲、真诚、平等"
+      ending: "平淡收束，不做结论"
+
+  # 更多风格照此追加。参考 examples/styles/01-daily-sketch.md 了解完整写法。
+  # 注意：这里只放「路由需要的元数据」，详细的风格指南（怎么写、参考源、自检清单）
+  # 写在 examples/styles/<风格名>.md，写作阶段会读那个文件。

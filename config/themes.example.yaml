@@ -1,0 +1,18 @@
+# gzhflow 排版主题路由表配置模板
+# 用法：复制为 config/themes.yaml。排版阶段（⑤）据文风/话题选主题，再用 md2wechat.py 渲染。
+
+# default_theme: 匹配不到时的兜底主题
+default_theme: "zen"
+
+# 主题实际定义（色值/字体/组件样式）在 examples/themes/*.yaml
+# 这里只做「文风/话题 → 主题名」的路由
+routing:
+  - topic_keywords: ["日常", "随笔", "生活", "情感"]
+    theme: "zen"            # 留白禅意
+  - topic_keywords: ["教程", "干货", "盘点", "工具", "知识"]
+    theme: "minimal"        # 极简理性
+  - topic_keywords: ["观点", "深度", "分析", "思考"]
+    theme: "zen"
+
+# 你可以在 examples/themes/ 里自定义更多主题（复制 01-zen-whitespace.yaml 改色值），
+# 然后在这里登记路由。

@@ -1,0 +1,57 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  # 1. 全历史 secret 扫描
+  secret-scan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  # 2. 仓库结构校验（链接 / 引用 / secret / frontmatter）
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: 仓库校验
+        run: python scripts/validate_repo.py
+
+  # 3. 脚本语法检查 + 质检门冒烟测试
+  script-lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Python 语法检查
+        run: |
+          python -m py_compile scripts/validate_repo.py
+          python -m py_compile scripts/ai_flavor_score.py
+          python -m py_compile scripts/check_image_prompt.py
+          python -m py_compile scripts/md2wechat.py
+          python -m py_compile scripts/validate_gzh_html.py
+          python -m py_compile scripts/crop_image.py
+          python -m py_compile scripts/publish_draft.py
+      - name: 去 AI 味机器门冒烟（干净文本通过）
+        run: |
+          python scripts/ai_flavor_score.py --text "这是一个普通的句子，没有破折号也没有黑话。" > /dev/null
+      - name: 配图 prompt 质检门冒烟（PASS 态）
+        run: |
+          echo "cold-pressed paper, brush stroke, 晕染, 16:9" | python scripts/check_image_prompt.py > /dev/null
+      - name: HTML 校验冒烟（平衡 HTML 通过）
+        run: |
+          printf '<section><p><span>你好</span></p></section>' | python scripts/validate_gzh_html.py --stdin > /dev/null 2>&1
+          echo "smoke test PASS"

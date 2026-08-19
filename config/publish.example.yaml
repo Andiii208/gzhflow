@@ -1,0 +1,29 @@
+# gzhflow 发布配置模板
+# 用法：复制为 config/publish.yaml 并填入你的微信公众号凭证（本地文件，切勿提交）。
+# 发布层（阶段⑥）用 scripts/publish_draft.py 调用微信官方 API 推草稿箱。
+
+# ── 微信公众号凭证 ──
+wechat:
+  app_id: "your_app_id"            # 微信公众号 AppID
+  app_secret: "your_app_secret"    # AppSecret（只显示一次，丢失需重置）
+
+# ── 凭证读取优先级 ──
+# publish_draft.py 按以下顺序读凭证：
+#   1) 命令行参数 --app-id / --app-secret
+#   2) 环境变量 WECHAT_APP_ID / WECHAT_APP_SECRET（推荐放 .env）
+#   3) 本文件 config/publish.yaml 的 wechat 字段
+# 本文件仅为兜底，且已 gitignore；更推荐用 .env（见 SECURITY.md）。
+
+# ── 发布偏好 ──
+publish:
+  # 文章默认作者（未在 frontmatter 指定时用）
+  default_author: "你的公众号名"
+  # 是否默认开启留言（需公众号具备该权限，否则忽略）
+  open_comment: true
+  # 发布方式：目前仅支持 draft（推草稿箱，个人号可用）
+  # 认证服务号可后续扩展为 freepublish（直接发布）
+  method: "draft"
+
+# ── IP 白名单提示 ──
+# 微信 API 要求调用机器的出口 IP 在「开发者平台 → 公众号 → 基础信息 → API IP 白名单」中。
+# 非白名单 IP 报错 40164 invalid ip。详见 references/wechat-api-guide.md。

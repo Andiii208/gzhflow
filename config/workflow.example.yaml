@@ -1,0 +1,43 @@
+# gzhflow 工作流配置模板
+# 用法：复制为 config/workflow.yaml 后按需修改。所有键都有默认值，可只改需要的部分。
+
+# ── 六阶段开关 ──
+# 设为 false 可跳过该阶段（如不想配图，把 illustration 设为 false）
+stages:
+  material: true      # ① 素材先行
+  writing: true       # ② 写作
+  deai: true          # ③ 去 AI 味
+  illustration: false # ④ 配图（默认关闭，需图生后端，配好再开）
+  layout: true        # ⑤ 排版
+  publish: true       # ⑥ 推草稿箱
+
+# ── 审核模式 ──
+# strict: 每阶段输出都给用户审阅后才进入下一阶段（默认，最稳）
+# auto:   用户说"直接做/不用审阅"时全自动跳过审阅
+review_mode: strict
+
+# ── 输出目录 ──
+output_dir: generated
+
+# ── 作者署名（写入文章 frontmatter 与签名区）──
+author: "你的公众号名"        # 改为你自己的公众号名
+signature: "—— {author}"      # 签名格式，{author} 会被替换
+
+# ── 图生后端（阶段④配图用，OpenAI 兼容接口）──
+# 支持任何 OpenAI 兼容 /images/generations 端点：
+#   - 阿里云百炼 DashScope：https://dashscope.aliyuncs.com/compatible-mode/v1
+#   - MiniMax：https://api.minimax.chat/v1
+#   - OpenAI：https://api.openai.com/v1
+#   - 豆包/火山方舟、智谱、月之暗面等（均为 OpenAI 兼容协议）
+image_backend:
+  base_url: "https://dashscope.aliyuncs.com/compatible-mode/v1"  # 改为你的服务商
+  model: "wanx2.1-t2i-turbo"      # 模型名按服务商文档填
+  api_key_env: "IMAGE_API_KEY"    # 读哪个环境变量的 API Key（本地 .env）
+
+# ── 图片规格 ──
+image_spec:
+  cover_ratio: "2.35:1"    # 封面比例（16:9 生成后中心裁）
+  cover_approx: "900x383"
+  inline_ratio: "16:9"     # 内文配图
+  inline_approx: "900x506"
+  quality: 85              # jpg 质量

@@ -1,0 +1,28 @@
+# 示例排版主题：极简理性（Minimal）
+
+> 第二个示例主题，展示「复制主题文件改色值 = 新主题」的机制。
+> `scripts/md2wechat.py --theme minimal` 读取。适合教程/干货/观点/方法论。
+
+```yaml
+name: "minimal"
+description: "极简理性：灰阶基调、细线分隔、克制排版，适合教程/干货/观点/方法论"
+
+colors:
+  bg: "#ffffff"
+  text: "#333333"
+  accent: "#666666"
+  quote_bg: "#f5f5f5"
+
+fonts:
+  body: "'PingFang SC', 'Microsoft YaHei', 'Noto Sans CJK SC', sans-serif"
+  heading: "'PingFang SC', 'Microsoft YaHei', sans-serif"
+
+layout:
+  body_size: "15px"
+  line_height: "1.7"
+  paragraph_margin: "0 0 0.9em"
+  side_margin: "10px"
+```
+
+> 对比 `01-zen-whitespace.yaml`：无衬线黑体系 + 更紧的行距 + 灰阶强调色 = 理性工具感。
+> 想自定义主题：复制本文件 → 改名 → 改色值/字体 → 在 `config/themes.yaml` 登记路由。

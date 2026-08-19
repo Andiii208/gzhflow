@@ -1,0 +1,238 @@
+#!/usr/bin/env python3
+"""gzhflow 推草稿箱工具（publish_draft）。
+
+调用微信官方 API 把排版好的 HTML + 封面图推送到公众号草稿箱：
+  1. 获取 access_token（凭 AppID + AppSecret）
+  2. 上传正文图片（media/uploadimg）→ 重写为 https URL
+  3. 上传封面素材（media/add_material, type=image）
+  4. draft/add 创建草稿
+
+⚠️ 个人主体公众号 2025-07 起无法 API 直接发布（freepublish 回收），
+   本工具只推草稿箱，用户在「公众号助手 App」手动点发布。
+
+凭证读取优先级：命令行参数 → 环境变量 WECHAT_APP_ID/WECHAT_APP_SECRET
+              → config/publish.yaml 的 wechat 字段
+
+用法:
+    python scripts/publish_draft.py <排版.html> --title "标题" \
+        --author "作者" --summary "摘要" --cover cover.jpg --dry-run
+    python scripts/publish_draft.py <排版.html> --title "标题" \
+        --author "作者" --summary "摘要" --cover cover.jpg
+
+退出码: 0 = 成功, 非0 = 失败
+"""
+import argparse
+import json
+import os
+import re
+import sys
+import urllib.request
+import urllib.error
+from pathlib import Path
+
+# Windows GBK 控制台兼容：强制 UTF-8 输出
+if hasattr(sys.stdout, "reconfigure"):
+    sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+
+API_BASE = "https://api.weixin.qq.com"
+ROOT = Path(__file__).resolve().parent.parent
+
+
+# ============ 凭证读取 ============
+def load_credentials(args):
+    app_id = args.app_id or os.environ.get("WECHAT_APP_ID")
+    app_secret = args.app_secret or os.environ.get("WECHAT_APP_SECRET")
+
+    if not app_id or not app_secret:
+        # 兜底：config/publish.yaml
+        cfg = ROOT / "config" / "publish.yaml"
+        if cfg.exists():
+            text = cfg.read_text(encoding="utf-8")
+            m_id = re.search(r"app_id\s*[:=]\s*[\"']?([^\"'\s]+)", text)
+            m_sec = re.search(r"app_secret\s*[:=]\s*[\"']?([^\"'\s]+)", text)
+            if m_id:
+                app_id = app_id or m_id.group(1)
+            if m_sec:
+                app_secret = app_secret or m_sec.group(1)
+
+    if not app_id or not app_secret:
+        print("❌ 缺少凭证：请设环境变量 WECHAT_APP_ID/WECHAT_APP_SECRET 或填 config/publish.yaml", file=sys.stderr)
+        sys.exit(2)
+    if "your_" in app_id or "your_" in app_secret or "REDACTED" in app_id:
+        print("❌ 凭证仍是占位符（your_*/REDACTED），请填入真实 AppID/AppSecret", file=sys.stderr)
+        sys.exit(2)
+    return app_id, app_secret
+
+
+# ============ API 调用 ============
+def api_get(url: str) -> dict:
+    with urllib.request.urlopen(url, timeout=15) as r:
+        return json.loads(r.read().decode("utf-8"))
+
+
+def api_post(url: str, data: dict, files: dict = None) -> dict:
+    if files:
+        # multipart 上传素材
+        boundary = "----gzhflowBoundary" + os.urandom(8).hex()
+        body = b""
+        for key, (fname, content, ctype) in files.items():
+            body += f"--{boundary}\r\n".encode()
+            body += f'Content-Disposition: form-data; name="{key}"; filename="{fname}"\r\n'.encode()
+            body += f"Content-Type: {ctype}\r\n\r\n".encode()
+            body += content + b"\r\n"
+        body += f"--{boundary}--\r\n".encode()
+        req = urllib.request.Request(
+            url, data=body,
+            headers={"Content-Type": f"multipart/form-data; boundary={boundary}"},
+        )
+    else:
+        req = urllib.request.Request(
+            url, data=json.dumps(data, ensure_ascii=False).encode("utf-8"),
+            headers={"Content-Type": "application/json"},
+        )
+    with urllib.request.urlopen(req, timeout=30) as r:
+        return json.loads(r.read().decode("utf-8"))
+
+
+def get_token(app_id: str, app_secret: str) -> str:
+    url = f"{API_BASE}/cgi-bin/token?grant_type=client_credential&appid={app_id}&secret={app_secret}"
+    resp = api_get(url)
+    if "access_token" not in resp:
+        print(f"❌ 获取 token 失败: {resp}", file=sys.stderr)
+        sys.exit(1)
+    return resp["access_token"]
+
+
+# ============ 上传图片 ============
+def upload_image(token: str, img_path: Path) -> str:
+    """上传正文图片（media/uploadimg），返回 https URL。"""
+    content = img_path.read_bytes()
+    url = f"{API_BASE}/cgi-bin/media/uploadimg?access_token={token}"
+    resp = api_post(url, {}, files={"media": (img_path.name, content, "image/jpeg")})
+    if "url" not in resp:
+        print(f"❌ 上传图片失败 {img_path}: {resp}", file=sys.stderr)
+        sys.exit(1)
+    return resp["url"]
+
+
+def upload_cover(token: str, cover_path: Path) -> str:
+    """上传封面素材（media/add_material），返回 media_id。"""
+    content = cover_path.read_bytes()
+    url = f"{API_BASE}/cgi-bin/media/add_material?access_token={token}&type=image"
+    resp = api_post(url, {}, files={"media": (cover_path.name, content, "image/jpeg")})
+    if "media_id" not in resp:
+        print(f"❌ 上传封面失败 {cover_path}: {resp}", file=sys.stderr)
+        sys.exit(1)
+    return resp["media_id"]
+
+
+def upload_html_images(token: str, html_text: str, base_dir: Path) -> str:
+    """扫描 HTML 中的本地图片，上传并重写为 https URL。"""
+    def _replace(m):
+        src = m.group(1)
+        if src.startswith(("http://", "https://", "data:")):
+            return m.group(0)
+        p = base_dir / src
+        if not p.exists():
+            print(f"⚠️ 图片不存在，保留原路径: {src}", file=sys.stderr)
+            return m.group(0)
+        url = upload_image(token, p)
+        print(f"  ↳ 上传图片 {src} → {url[:60]}…")
+        return f'src="{url}"'
+    return re.sub(r'src="([^"]+)"', _replace, html_text)
+
+
+# ============ 主流程 ============
+def main():
+    ap = argparse.ArgumentParser(description="gzhflow 推草稿箱（微信官方 API）")
+    ap.add_argument("html", help="排版 HTML 路径")
+    ap.add_argument("--title", required=True, help="文章标题")
+    ap.add_argument("--author", help="作者（默认 config 或 frontmatter）")
+    ap.add_argument("--summary", help="摘要（默认截取正文前 120 字）")
+    ap.add_argument("--cover", required=True, help="封面图路径（2.35:1 ≈ 900x383）")
+    ap.add_argument("--app-id", help="AppID（覆盖环境变量）")
+    ap.add_argument("--app-secret", help="AppSecret（覆盖环境变量）")
+    ap.add_argument("--dry-run", action="store_true", help="验证全链路但不推送（取 token 前返回）")
+    args = ap.parse_args()
+
+    html_path = Path(args.html)
+    if not html_path.exists():
+        print(f"❌ HTML 不存在: {html_path}", file=sys.stderr)
+        sys.exit(2)
+    cover = Path(args.cover)
+    if not cover.exists():
+        print(f"❌ 封面不存在: {cover}", file=sys.stderr)
+        sys.exit(2)
+
+    # 元数据：CLI 参数 > frontmatter
+    html_text = html_path.read_text(encoding="utf-8")
+    author = args.author
+    summary = args.summary
+    title = args.title
+    md_side = html_path.with_suffix(".md")
+    if md_side.exists():
+        md_text = md_side.read_text(encoding="utf-8")
+        fm = re.search(r"^---\s*\n(.*?)\n---", md_text, re.S)
+        if fm:
+            for key, pat in (("title", r"title\s*:\s*(.+)"),
+                             ("author", r"author\s*:\s*(.+)"),
+                             ("description", r"description\s*:\s*(.+)"),
+                             ("coverImage", r"coverImage\s*:\s*(.+)")):
+                m = re.search(pat, fm.group(1))
+                if m and m.group(1).strip() and m.group(1).strip() != "null":
+                    if key == "title":
+                        title = title or m.group(1).strip()
+                    elif key == "author":
+                        author = author or m.group(1).strip()
+                    elif key == "description":
+                        summary = summary or m.group(1).strip()
+                    elif key == "coverImage" and not args.cover:
+                        cover = html_path.parent / m.group(1).strip()
+
+    if args.dry_run:
+        print("✅ dry-run 通过：参数/文件就绪（未取 token，零风险）")
+        print(f"   title: {title}")
+        print(f"   author: {author or '(未指定)'}")
+        print(f"   summary: {(summary or '')[:60]}{'…' if summary and len(summary) > 60 else ''}")
+        print(f"   cover: {cover}")
+        sys.exit(0)
+
+    app_id, app_secret = load_credentials(args)
+    token = get_token(app_id, app_secret)
+    print("✅ 已获取 access_token")
+
+    # 上传正文图片并重写
+    html_remote = upload_html_images(token, html_text, html_path.parent)
+    if html_remote != html_text:
+        print("✅ 正文图片已上传并重写为 https URL")
+
+    # 上传封面
+    cover_media_id = upload_cover(token, cover)
+    print(f"✅ 封面已上传: {cover_media_id}")
+
+    # 摘要兜底：截取正文前 120 字
+    if not summary:
+        text_only = re.sub(r"<[^>]+>", "", html_remote)
+        summary = re.sub(r"\s+", "", text_only)[:120]
+
+    # 创建草稿
+    article = {
+        "title": title,
+        "author": author or "",
+        "digest": summary,
+        "content": html_remote,
+        "content_source_url": "",
+        "need_open_comment": 1,
+        "thumb_media_id": cover_media_id,
+    }
+    resp = api_post(f"{API_BASE}/cgi-bin/draft/add?access_token={token}", {"articles": [article]})
+    if "media_id" in resp:
+        print(f"✅ 已推送到草稿箱: {resp['media_id']}")
+        print("   请在「公众号助手 App → 草稿箱」检查后手动发布（个人号无法 API 直接发布）")
+        sys.exit(0)
+    print(f"❌ 创建草稿失败: {resp}", file=sys.stderr)
+    sys.exit(1)
+
+
+if __name__ == "__main__":
+    main()

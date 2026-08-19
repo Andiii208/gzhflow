@@ -1,0 +1,40 @@
+# 示例排版主题：留白禅意（Zen Whitespace）
+
+> 去个人化示例主题。`scripts/md2wechat.py --theme zen` 读取本文件渲染。
+> 复制改色值即可自定义新主题（如 02-minimal.yaml），然后在 `config/themes.yaml` 登记路由。
+
+```yaml
+name: "zen"
+description: "留白禅意：大面积留白、衬线字体、克制配色，适合随笔/情感/深度文章"
+
+colors:
+  bg: "#ffffff"
+  text: "#3f3f3f"
+  accent: "#8c8c8c"
+  quote_bg: "#f7f7f5"
+
+fonts:
+  body: "'Songti SC', 'Noto Serif CJK SC', 'Source Han Serif SC', 'SimSun', serif"
+  heading: "'Noto Serif SC', serif"
+
+layout:
+  body_size: "15px"
+  line_height: "1.75"
+  paragraph_margin: "0 0 1em"
+  side_margin: "12px"
+```
+
+## 主题变量说明
+
+| 变量 | 含义 | 建议 |
+|---|---|---|
+| colors.bg | 页面背景 | 白/米白 |
+| colors.text | 正文色 | #3f3f3f 或 #444（不要纯黑 #000） |
+| colors.accent | 强调色（引用条/分割线） | 全主题 ≤3 种颜色 |
+| colors.quote_bg | 金句/引用块背景 | 比 bg 深一点点的中性色 |
+| fonts.body | 正文字体栈 | 中文衬线优先（iOS 宋体/Android 思源宋体） |
+| fonts.heading | 标题字体 | 衬线 |
+| layout.body_size | 正文字号 | 15-16px |
+| layout.line_height | 行距 | 1.75-1.8（微信默认 1.0 太挤） |
+| layout.paragraph_margin | 段间距 | 段落间空一行即可 |
+| layout.side_margin | 页边距 | 8-12px |

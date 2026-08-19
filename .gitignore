@@ -1,0 +1,45 @@
+# 忽略运行产物与本地配置
+
+# 生成产物
+generated/
+outputs/
+dist/
+build/
+
+# 本地配置（含真实凭证）
+config/*.yaml
+config/*.yml
+!config/*.example.yaml
+!config/*.example.yml
+
+# 环境变量
+.env
+.env.*
+!.env.example
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+
+# 图片运行产物
+*.jpg
+*.jpeg
+*.png
+*.gif
+!assets/**/*.png
+!assets/**/*.jpg
+!examples/**/*.png
+!examples/**/*.jpg
+
+# 系统与编辑器
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+
+# 本地备份
+.local/

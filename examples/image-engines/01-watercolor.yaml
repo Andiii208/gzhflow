@@ -1,0 +1,39 @@
+# 示例配图引擎：手绘水彩（Watercolor）
+
+> 去个人化示例引擎。配图阶段按文风路由到此引擎时，读本文件四件套编译 prompt。
+
+```yaml
+name: "watercolor"
+
+description: "手绘水彩风：暖米纸底 + 低饱和晕染 + 可见笔触，适合诗意/散文/情感向文章"
+
+# ── 色彩引擎 ──
+color:
+  base: "暖米色纸系（米白/浅燕麦/暖灰），占画面 55%-75%"
+  accents: ["鼠尾草绿", "陶土橙", "雾霾蓝", "旧黄", "干枯玫瑰"]
+  ink: "深灰暖棕，低对比，不用纯黑"
+  forbidden: ["flat vector", "minimalist line art", "charcoal", "gold foil", "gallery poster", "vivid gradient", "glassmorphism", "neon glow", "3D render", "anime style", "swiss grid", "matte poster", "high saturation", "clean white background"]
+
+# ── 纹理引擎 ──
+texture:
+  paper: ["cold-pressed paper texture", "aged paper", "paper grain"]
+  effects: ["wet-on-wet blooms", "watercolor edge bleeding", "visible brush strokes", "granulating pigments", "subtle paint splatter"]
+
+# ── 排版引擎 ──
+typography:
+  default: "无文字"
+  max_title: "10字"
+  font: "handwritten Chinese calligraphy"
+
+# ── 规避清单 ──
+layout:
+  hard: ["全出血商业海报", "logo", "CTA", "玻璃拟态", "渐变紫", "霓虹", "3D渲染", "日系动漫脸", "高饱和色块", "干净UI白底"]
+  soft: ["high saturation", "gradient", "drop shadow", "bokeh", "photo-realistic", "stock photo"]
+```
+
+## 使用要点（配图阶段照此执行）
+
+- 晕染色以水彩湿画法晕染、色带、洗淡照片区存在——**禁止平涂色块**（晕染区合计 10%-25%，单色块 <5%）
+- 转译规则：抽象主题 → 一个可画的具体意象（孤独 → 一扇半开的窗，窗帘被风吹起一角）
+- 布局多样性：连续多张时避免雷同（换锚点类型）
+- 封面 16:9 附加安全区约束句：`构图安全区：画面顶部与底部边缘各保留纯纸色留白（无文字无主体），便于安全裁切`
