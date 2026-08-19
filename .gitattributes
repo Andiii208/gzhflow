@@ -1,0 +1,9 @@
+# 换行符规范化：所有文本文件统一 LF（避免 Windows CRLF 噪音）
+* text=auto eol=lf
+
+# 二进制文件不转换
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
