@@ -23,6 +23,8 @@
   name: '@deepseek-ai/dsh-tool-fs'
 - id: tool-fs-search
   name: '@deepseek-ai/dsh-tool-fs-search'
+  config:
+    sampleOverCapGlobResults: false
 - id: tool-str-replace-editor
   name: '@deepseek-ai/dsh-tool-str-replace-editor'
 - id: tool-pwsh

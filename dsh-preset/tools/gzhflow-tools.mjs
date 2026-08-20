@@ -113,7 +113,8 @@ function wrap(r) {
 }
 
 export function apply(ctx, config) {
-  const pythonBin = config.python ?? 'python'
+  // config 可能为 undefined（agent.cordis.yml 的 gzhflow-tools 行无 config 块时 cordis 传 undefined）
+  const pythonBin = config?.python ?? 'python'
   const registerTool = (tool) => ctx.effect(() => ctx.tools.register({
     ...tool,
     parameters: toJsonSchema(tool.parameters),
