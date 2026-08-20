@@ -30,3 +30,5 @@
   disabled: !!js process.platform === 'win32'
 - id: tool-skill
   name: '@deepseek-ai/dsh-tool-skill'
+- id: skill-filesystem
+  name: '@deepseek-ai/dsh-skill-filesystem'

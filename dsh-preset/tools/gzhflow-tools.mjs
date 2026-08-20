@@ -33,21 +33,27 @@ function toJsonSchema(spec) {
 
 /** 跑一个 scripts/*.py（经 ctx.subprocess，沙箱合规）。返回 {exitCode, stdout, stderr}。 */
 export async function runScript(ctx, script, args = [], opts = {}) {
-  const handle = ctx.subprocess.spawn({
-    argv: [opts.python ?? 'python', join(SCRIPTS_DIR, script), ...args],
-    cwd: REPO_ROOT,
-    env: { ...process.env, ...(opts.env ?? {}) },
-    stdio: {
-      stdin: opts.stdinData !== undefined ? { data: opts.stdinData } : 'ignore',
-      stdout: { maxBytes: opts.maxBytes ?? 2_000_000 },
-      stderr: { maxBytes: opts.maxBytes ?? 2_000_000 },
-    },
-  })
+  let handle
+  try {
+    handle = ctx.subprocess.spawn({
+      argv: [opts.python ?? 'python', join(SCRIPTS_DIR, script), ...args],
+      cwd: REPO_ROOT,
+      env: opts.env ?? {}, // 只传增量：运行时自带清洗后的父环境基线，勿展开 ...process.env
+      graceMs: opts.graceMs ?? 3000,
+      stdio: {
+        stdin: opts.stdinData !== undefined ? { data: opts.stdinData } : 'ignore',
+        stdout: { maxBytes: opts.maxBytes ?? 2_000_000 },
+        stderr: { maxBytes: opts.maxBytes ?? 2_000_000 },
+      },
+    })
+  } catch (err) {
+    return { exitCode: 2, stdout: '', stderr: `❌ 无法启动脚本（python 是否在 PATH？）: ${err?.message ?? err}` }
+  }
   const { exitCode } = await handle.done
   return {
     exitCode: exitCode ?? 1,
-    stdout: (handle.stdout?.text ?? '').trim(),
-    stderr: (handle.stderr?.text ?? '').trim(),
+    stdout: (handle.collected?.stdout?.readFrom(0)?.text ?? '').trim(),
+    stderr: (handle.collected?.stderr?.readFrom(0)?.text ?? '').trim(),
   }
 }
 
@@ -153,25 +159,28 @@ export function apply(ctx, config) {
     },
     output: { schema: { type: 'object' }, render: (_a, v) => [{ type: 'text', text: JSON.stringify(v, null, 2) }] },
     async execute(args) {
-      const credentials = ctx.get('credentials')
-      const read = async (ref) => {
-        const res = credentials ? await credentials.resolve(ref) : undefined
-        return res?.value
-      }
-      const appId = await read('WECHAT_APP_ID')
-      const appSecret = await read('WECHAT_APP_SECRET')
-      if (!appId || !appSecret) {
-        return { exit_code: 2, output: '', stderr: '❌ 未配置公众号凭证：请先在 DSH 设置 → 凭据 → 填写 WECHAT_APP_ID 与 WECHAT_APP_SECRET' }
-      }
       const argv = [args.html, '--title', args.title]
       if (args.author) argv.push('--author', args.author)
       if (args.summary) argv.push('--summary', args.summary)
       if (args.cover) argv.push('--cover', args.cover)
       if (args.dry_run) argv.push('--dry-run')
-      const r = await runScript(ctx, 'publish_draft.py', argv, {
-        env: { WECHAT_APP_ID: appId, WECHAT_APP_SECRET: appSecret },
-        python: pythonBin,
-      })
+      const env = {}
+      if (!args.dry_run) {
+        // dry_run 免凭证（与脚本一致：dry-run 在 load_credentials 前返回）
+        const credentials = ctx.get('credentials')
+        const read = async (ref) => {
+          const res = credentials ? await credentials.resolve(ref) : undefined
+          return res?.value
+        }
+        const appId = await read('WECHAT_APP_ID')
+        const appSecret = await read('WECHAT_APP_SECRET')
+        if (!appId || !appSecret) {
+          return { exit_code: 2, output: '', stderr: '❌ 未配置公众号凭证：请先在 DSH 设置 → 凭据 → 填写 WECHAT_APP_ID 与 WECHAT_APP_SECRET' }
+        }
+        env.WECHAT_APP_ID = appId
+        env.WECHAT_APP_SECRET = appSecret
+      }
+      const r = await runScript(ctx, 'publish_draft.py', argv, { env, python: pythonBin })
       return wrap(r)
     },
   })

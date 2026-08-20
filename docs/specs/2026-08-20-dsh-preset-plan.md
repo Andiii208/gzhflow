@@ -27,7 +27,7 @@
 |---|---|
 | 模块契约 | `export const name = '...'`；`export const inject = ['tools','credentials','subprocess']`；`export function apply(ctx, config)` |
 | 注册工具 | `ctx.effect(() => ctx.tools.register({ ...tool, parameters: toJsonSchema(tool.parameters), output: { schema, render } }))` |
-| 跑脚本 | `const h = ctx.subprocess.spawn({ argv: ['python', scriptPath, ...args], cwd: repoRoot, env: {...process.env, ...extra}, stdio: { stdin: 'ignore' 或 {data: '...'}, stdout: {maxBytes: 2e6}, stderr: {maxBytes: 2e6} } })`；`const { exitCode } = await h.done`；输出 `h.stdout?.text` / `h.stderr?.text` |
+| 跑脚本 | `const h = ctx.subprocess.spawn({ argv: ['python', scriptPath, ...args], cwd: repoRoot, graceMs: 3000, env: 增量（运行时自带清洗后的父环境基线）, stdio: { stdin: 'ignore' 或 {data: '...'}, stdout: {maxBytes: 2e6}, stderr: {maxBytes: 2e6} } })`；`const { exitCode } = await h.done`；输出 `h.collected?.stdout?.readFrom(0)?.text` / `h.collected?.stderr?.readFrom(0)?.text` |
 | 读凭证 | `const res = await ctx.credentials.resolve('WECHAT_APP_ID')` → `{ value, source } \| undefined` |
 
 ---

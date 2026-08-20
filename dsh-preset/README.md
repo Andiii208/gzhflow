@@ -12,6 +12,8 @@ powershell -ExecutionPolicy Bypass -File dsh-preset/install.ps1
 bash dsh-preset/install.sh
 ```
 
+（在仓库根目录运行）
+
 安装脚本把 `dsh-preset/` 链接到 `~/.dsh/.agent-presets/gzhflow/`、把 `skills/gzhflow/` 链接到 DSH skill 目录，
 改仓库即生效（junction/symlink），重复安装幂等。
 

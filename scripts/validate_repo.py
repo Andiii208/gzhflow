@@ -157,7 +157,7 @@ def main():
         for e in errors:
             print("  ", e)
         sys.exit(1)
-    print("✅ 校验通过：链接 / references / secrets / frontmatter 全部正常")
+    print("✅ 校验通过：链接 / references / secrets / frontmatter / dsh-preset 全部正常")
 
 
 if __name__ == "__main__":

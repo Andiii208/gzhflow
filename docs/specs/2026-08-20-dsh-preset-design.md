@@ -101,9 +101,9 @@ dsh-preset/
 
 ### 5.1 凭证注入（gzhflow_publish_draft）
 
-- 工具执行时从 **DSH credentials 存储**读取 `wechat.app_id` / `wechat.app_secret`（dsh-credentials-local 提供 API）；
-- 读不到 → 返回友好错误「请先在 DSH 设置 → 凭据 → 填写 wechat.app_id / wechat.app_secret」，不调用脚本；
-- 读到 → 通过 `--app-id / --app-secret` 参数注入 `publish_draft.py`（脚本已支持，零改动）；
+- 工具执行时从 **DSH credentials 存储**读取 `WECHAT_APP_ID` / `WECHAT_APP_SECRET`（dsh-credentials-local 提供 API）；
+- 读不到 → 返回友好错误「请先在 DSH 设置 → 凭据 → 填写 WECHAT_APP_ID / WECHAT_APP_SECRET」，不调用脚本；
+- 读到 → 经子进程 env 注入（WECHAT_APP_ID / WECHAT_APP_SECRET），不进命令行参数；
 - 凭证只存在于 DSH credentials 存储与进程内存，**绝不写入仓库/日志/工具结果**。
 
 ### 5.2 错误处理
@@ -126,7 +126,7 @@ bash dsh-preset/install.sh
   改仓库即生效（符合 DSH junction 惯例）；幂等（已存在则跳过）。
 - 安装脚本同时把 `skills/gzhflow/` 链接到 DSH skill 目录（如 `~/.agents/skills/gzhflow/`），保证 skill 引用可解析。
 - 使用：DSH 新建会话 → 选「gzhflow 公众号主编」预设 → 说「用 gzhflow 写一篇关于 XX 的文章」。
-- 凭证：DSH 设置 → 凭据 → `wechat.app_id` / `wechat.app_secret`。
+- 凭证：DSH 设置 → 凭据 → `WECHAT_APP_ID` / `WECHAT_APP_SECRET`。
 
 ## 7. 测试与验收
 
