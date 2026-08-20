@@ -73,7 +73,9 @@ def check_links():
 
 
 # ---- 2. SKILL references 引用存在性 ----
-REF_RE = re.compile(r"references/([A-Za-z0-9_.\-]+\.md)")
+# 支持三种写法：仓库根 references/、skill 内嵌 references/、完整相对路径 skills/xxx/references/
+REF_SHORT_RE = re.compile(r"references/([A-Za-z0-9_.\-]+\.md)")
+REF_FULL_RE = re.compile(r"skills/([A-Za-z0-9_.\-]+)/references/([A-Za-z0-9_.\-]+\.md)")
 
 
 def check_refs():
@@ -82,9 +84,19 @@ def check_refs():
             text = sk.read_text(encoding="utf-8")
         except Exception:
             continue
-        for m in REF_RE.finditer(text):
+        # 完整路径优先（skills/xxx/references/yyy.md），检查后从文本移除避免短匹配重复报
+        remaining = REF_FULL_RE.sub("", text)
+        for m in REF_FULL_RE.finditer(text):
+            skill, fname = m.group(1), m.group(2)
+            if not (ROOT / "skills" / skill / "references" / fname).exists():
+                errors.append(f"[ref] {sk.relative_to(ROOT)}: skills/{skill}/references/{fname} 不存在")
+        for m in REF_SHORT_RE.finditer(remaining):
             fname = m.group(1)
-            if not (ROOT / "references" / fname).exists():
+            candidates = [
+                ROOT / "references" / fname,                       # 仓库根
+                sk.parent / "references" / fname,                  # skill 内嵌
+            ]
+            if not any(p.exists() for p in candidates):
                 errors.append(f"[ref] {sk.relative_to(ROOT)}: references/{fname} 不存在")
 
 

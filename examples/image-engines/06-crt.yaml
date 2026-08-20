@@ -1,0 +1,24 @@
+# 配图引擎：黑白针管笔（crt / tait 风格）
+# 炼化自 andiii-wechat-workflow/skills/andiii-crt-style（MIT）
+name: "crt"
+
+description: "黑白针管笔线稿风：细腻线条、疏密对比、无彩色，适合文艺/深度/黑白摄影感文章"
+
+color:
+  base: "纯白纸底，黑白灰阶，无彩色"
+  accents: ["无（纯黑白）"]
+  ink: "针管笔墨（细线深黑 #1a1a1a），灰阶层次"
+  forbidden: ["color", "saturated", "watercolor", "pastel", "gradient", "3D render", "neon", "photo"]
+
+texture:
+  paper: ["smooth white paper", "fine art paper"]
+  effects: ["fine pen lines", "hatching", "cross-hatching", "stippling", "line weight variation", "dense linework"]
+
+typography:
+  default: "无文字"
+  max_title: "10字（仅用户要求时，手写细线字）"
+  font: "handwritten thin-line"
+
+layout:
+  hard: ["彩色", "水彩晕染", "高饱和", "渐变", "3D", "霓虹", "照片写实", "商业插画", "可爱卡通"]
+  soft: ["thick brush strokes", "messy scribble", "color blocks"]

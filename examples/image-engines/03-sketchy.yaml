@@ -1,0 +1,24 @@
+# 配图引擎：潦草手账（sketchy doodle journal）
+# 炼化自 andiii-wechat-workflow/skills/andiii-sketchy-style（MIT）
+name: "sketchy"
+
+description: "潦草随性的手账涂鸦风：铅笔/马克笔线条、抖动线、胶带贴纸、涂改痕迹，适合日常随感/小事记录"
+
+color:
+  base: "白纸或牛皮纸底 + 铅笔灰线条主导"
+  accents: ["至多 1-2 个低饱和马克笔色（旧蓝/砖红/橄榄绿/焦黄），只做点缀，不做大面积色块"]
+  ink: "铅笔灰，不用纯黑"
+  forbidden: ["flat vector", "clean illustration", "high saturation", "commercial illustration", "gradient", "3D render", "neon"]
+
+texture:
+  paper: ["white paper", "kraft paper", "notebook paper"]
+  effects: ["sketchy jitter lines", "scribble", "doodle", "tape", "correction marks", "marker strokes", "pencil strokes", "erased traces"]
+
+typography:
+  default: "无图内文字"
+  max_title: "10字（仅用户要求时，手写潦草字可划线划掉/箭头/圆圈标注）"
+  font: "handwritten messy script"
+
+layout:
+  hard: ["精致高饱和商业插画", "polished vector art", "logo", "CTA", "3D", "霓虹", "玻璃拟态", "干净UI白底"]
+  soft: ["perfect lines", "clean geometry", "photorealistic"]

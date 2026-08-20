@@ -12,8 +12,8 @@ colors:
   quote_bg: "#f7f7f5"
 
 fonts:
-  body: "'Songti SC', 'Noto Serif CJK SC', 'Source Han Serif SC', 'SimSun', serif"
-  heading: "'Noto Serif SC', serif"
+  body: "'SimSun', 'Songti SC', 'STSong', 'Noto Serif CJK SC', 'Source Han Serif SC', serif"
+  heading: "'SimSun', 'Songti SC', 'STSong', 'Noto Serif CJK SC', serif"
 
 layout:
   body_size: "15px"

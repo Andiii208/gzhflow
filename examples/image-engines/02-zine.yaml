@@ -1,0 +1,24 @@
+# 配图引擎：Zine 拼贴（低饱和档案风）
+# 炼化自 andiii-wechat-workflow/skills/andiii-zine-style（MIT，上游 moonlin1213/muted-zine-poster-v01）
+name: "zine"
+
+description: "低饱和拼贴 Zine 风：档案感/破碎拼贴/旧纸印刷缺陷，适合深度/文艺/读书笔记类文章"
+
+color:
+  base: "全幅旧纸底（米白/淡黄/浅灰），70%-90% 纯纸留白"
+  accents: ["最多一个极淡 wash（淡米/淡黄/淡蓝灰/柔灰绿），以纸带/斜条/稀释照片区存在"]
+  ink: "灰黑墨主导，低对比，不用纯黑"
+  forbidden: ["cobalt", "ultramarine", "vivid", "saturated", "high-chroma", "color block", "high saturation"]
+
+texture:
+  paper: ["aged paper", "flatbed scan of old paper", "matte absorbent paper"]
+  effects: ["halftone", "risograph grain", "xerox wear", "ink bleed", "misregistration", "scan noise", "soft photocopy", "tear edge"]
+
+typography:
+  default: "无大标题；微文本/碎片字母/小日期/天气/签名作为氛围元素保留"
+  max_title: "一句短可读短语"
+  font: "small serif / typewriter / monospace"
+
+layout:
+  hard: ["全出血场景", "商业标题层级", "产品广告", "logo/CTA", "光泽 mockup", "干净 UI 白", "电影打光", "3D", "霓虹", "可爱卡通", "时尚杂志戏剧感", "密集剪贴簿", "太多颜色", "长段干净文字", "任何高饱和色块"]
+  soft: ["high contrast", "glossy", "sharp shadows", "clean vector"]

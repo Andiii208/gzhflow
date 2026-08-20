@@ -152,9 +152,13 @@ def upload_image(token: str, img_path: Path) -> str:
 
 
 def upload_cover(token: str, cover_path: Path) -> str:
-    """上传封面素材（media/add_material），返回 media_id。"""
+    """上传封面为永久素材（material/add_material），返回 media_id（thumb_media_id 用）。
+
+    注意：路径是 /cgi-bin/material/add_material（永久素材），不是 /cgi-bin/media/...
+    （media/ 下没有 add_material，写错会 404）。个人订阅号拥有此基础权限。
+    """
     content = cover_path.read_bytes()
-    url = f"{API_BASE}/cgi-bin/media/add_material?access_token={token}&type=image"
+    url = f"{API_BASE}/cgi-bin/material/add_material?access_token={token}&type=image"
     resp = api_post(url, {}, files={"media": (cover_path.name, content, _content_type(cover_path))})
     if "media_id" not in resp:
         _die_wechat_error(resp, "上传封面")
@@ -202,6 +206,7 @@ def main():
     ap.add_argument("--author", help="作者（默认 config 或 frontmatter）")
     ap.add_argument("--summary", help="摘要（默认截取正文前 120 字）")
     ap.add_argument("--cover", help="封面图路径（2.35:1 ≈ 900x383；缺省读 frontmatter 的 coverImage）")
+    ap.add_argument("--no-cover", action="store_true", help="不设置封面（个人订阅号 API 无法传封面，稍后在公众号助手 App 手动补）")
     ap.add_argument("--app-id", help="AppID（覆盖环境变量）")
     ap.add_argument("--app-secret", help="AppSecret（覆盖环境变量）")
     ap.add_argument("--dry-run", action="store_true", help="验证全链路但不推送（取 token 前返回）")
@@ -224,7 +229,7 @@ def main():
         (p for p in (html_path.with_suffix(".md"), html_path.parent / "draft.md") if p.exists()),
         None,
     )
-    if md_side:
+    if md_side and not args.no_cover:
         md_text = md_side.read_text(encoding="utf-8")
         fm = re.search(r"^---\s*\n(.*?)\n---", md_text, re.S)
         if fm:
@@ -245,10 +250,10 @@ def main():
                 elif key == "coverImage" and cover is None:
                     cover = html_path.parent / val
 
-    if cover is None:
-        print("❌ 未指定封面：请用 --cover，或在 frontmatter 写 coverImage", file=sys.stderr)
+    if cover is None and not args.no_cover:
+        print("❌ 未指定封面：请用 --cover，或在 frontmatter 写 coverImage，或加 --no-cover", file=sys.stderr)
         sys.exit(2)
-    if not cover.exists():
+    if cover is not None and not cover.exists():
         print(f"❌ 封面不存在: {cover}", file=sys.stderr)
         sys.exit(2)
 
@@ -274,9 +279,15 @@ def main():
     if html_remote != html_text:
         print("✅ 正文图片已上传并重写为 https URL")
 
-    # 上传封面
-    cover_media_id = upload_cover(token, cover)
-    print(f"✅ 封面已上传: {cover_media_id}")
+    # 上传封面（个人订阅号 thumb_media_id 需永久素材、无 add_material 权限：
+    # 40007/404。封面交给用户到公众号助手 App 手动设置，正文完整推送即可）
+    cover_media_id = None
+    if cover is not None:
+        try:
+            cover_media_id = upload_cover(token, cover)
+            print(f"✅ 封面已上传: {cover_media_id}")
+        except SystemExit:
+            print("⚠️ 封面上传失败（个人订阅号限制），继续推送正文，封面请在公众号助手 App 手动设置", file=sys.stderr)
 
     # 摘要兜底：截取正文前 120 字
     if not summary:
@@ -291,8 +302,9 @@ def main():
         "content": html_remote,
         "content_source_url": "",
         "need_open_comment": 1 if pub_cfg["open_comment"] else 0,
-        "thumb_media_id": cover_media_id,
     }
+    if cover_media_id:
+        article["thumb_media_id"] = cover_media_id
     resp = api_post(f"{API_BASE}/cgi-bin/draft/add?access_token={token}", {"articles": [article]})
     if "media_id" in resp:
         print(f"✅ 已推送到草稿箱: {resp['media_id']}")

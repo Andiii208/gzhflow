@@ -42,17 +42,19 @@ tags: [wechat, 公众号, content-publishing, workflow, cross-agent]
 
 ## 3. 阶段②：写作
 
-读 `prompts/02-writing.md`。流程：
+读 `prompts/02-writing.md` 与 `skills/andiii-writing-style/SKILL.md`（写作风格引擎）。流程：
 
-1. **风格路由**：读 `config/styles.yaml`，按用户话题关键词匹配文风 → 读对应 `examples/styles/<风格名>.md`（或用户自定义的风格文件）→ 按该风格特征写作
-2. 匹配不到 → 用 `default_style`
-3. 写完 → 跑机器门：`python scripts/ai_flavor_score.py <draft.md>`（剥离 frontmatter 与签名行再检）
-4. 自检四问：
+1. **风格路由**：读 `config/styles.yaml` 按话题关键词匹配文风；同时参考 `skills/andiii-writing-style/SKILL.md` 的**风格路由表**（6 公众号文风：槽边往事/MorningRocks/我要WhatYouNeed/杂乱无章/L先生说/新世相）+ **双模式写作体系**（模式A 个人感悟式 / 模式B 知识输出式）
+2. **标题公式库**：从 andiii-writing-style §四 取公式（≤20 字、制造认知缺口、不用震惊体）
+3. **写完** → 跑机器门：`python scripts/ai_flavor_score.py <draft.md>`（剥离 frontmatter 与签名行再检）
+4. **自检四问 + 人味自检**（andiii-writing-style §五）：
    - 这句是我真的想说的，还是为了「好看」写的？
    - 如果朋友读到，会觉得这是「我」写的吗？
    - 有没有一句话能让读者停下来想一会儿？
    - 我有没有在编造不属于用户的经历？
-5. **输出全文给用户审阅**（严格模式），用户确认后才进阶段③
+   - **人味检查**：文章里有没有至少一个"只有你知道的细节"？找出全文最工整的三句话（AI 味最高处）优先处理；漂亮句子超过 2 句删到只剩最要紧的
+5. **写作陷阱**（andiii-writing-style §七）：写太快会写出 AI 味；多版本迭代不如一次想清楚；最好的版本往往是最老实的一版；引用素材不要急着接"但是"
+6. **输出全文给用户审阅**（严格模式），用户确认后才进阶段③
 
 ## 4. 阶段③：去AI味
 
@@ -66,13 +68,13 @@ tags: [wechat, 公众号, content-publishing, workflow, cross-agent]
 
 ## 5. 阶段④：配图（可选，默认关）
 
-`config/workflow.yaml` 的 `stages.illustration: true` 才执行。读 `prompts/04-images.md` 与 `references/image-routing.md`：
+`config/workflow.yaml` 的 `stages.illustration: true` 才执行。读 `prompts/04-images.md` 与 `references/image-routing.md`、`references/image-style-routing.md`：
 
-1. **图源三问**（每个意象块独立决策）：
-   - 本体问：意象指向的东西现实中存在且读者认得出吗？→ 真实图（网上找）
+1. **图源三问**（每个意象块独立决策，见 image-style-routing.md「图源决策」）：
+   - 本体问：意象指向的东西现实中存在且读者认得出吗？→ 真实图（走 `references/real-image-collection.md` 渠道库）
    - 功能问：这张图要「证明」还是「营造」？证明→真实图；营造→AI 图
    - 素材问：网上有现成高质量合规真实图吗？有→用真的；找不到→AI 兜底
-2. **AI 轨风格路由**：读 `examples/image-engines/` 下的引擎定义，按文风选风格
+2. **AI 轨风格路由**：读 `examples/image-engines/` 下引擎定义（watercolor/zine/sketchy/minimal/heytear 五套），按文风选风格；风格是参考不是限制，允许跨风格混搭
 3. **设计推理**：读 `references/design-reasoning.md`，按 6 项模板作答（≤60 秒）
 4. **四段式编译**：画布纸感/主体隐喻/文字色彩/氛围规避
 5. **质检门**：`echo "prompt" | python scripts/check_image_prompt.py` → PASS 才生成
@@ -82,13 +84,19 @@ tags: [wechat, 公众号, content-publishing, workflow, cross-agent]
 
 ## 6. 阶段⑤：排版
 
-读 `prompts/05-layout.md` 与 `references/theme-routing.md`：
+读 `prompts/05-layout.md` 与 `skills/gzh-design/references/theme-index.md`：
 
-1. **主题路由**：读 `config/themes.yaml`，按文章题材/文风选主题
-2. **转换**：`python scripts/md2wechat.py draft.md --theme <主题名> -o 输出.html`（主题定义在 `examples/themes/`）
-3. **校验**：`python scripts/validate_gzh_html.py 输出.html` → **0 ERROR + 半角标点 0 WARN** 才放行
-4. **交叉核对**：md 里的每个 `##` 标题、`>` 金句、`![]` 图片必须全部出现在 HTML（grep 比对）
-5. 产物命名：`{标题}_排版_{主题}.html`，另可生成 `_预览.html` 人工兜底
+1. **主题路由**：读 `skills/gzh-design/references/theme-index.md`（主题单一来源），按题材推荐：
+   - 教程/清单/盘点 → 摸鱼绿；深度观点/力量感 → 红白；科技/专业 → 石墨极简；禅意/随笔 → 留白禅意；测评对比 → 摸鱼票据；内刊/案例复盘 → 橄榄手记
+   - 用户指定 → 直接用；无指定 → 给选项确认（全自动模式自动选并说明理由）
+2. **读组件库**：读所选主题的组件库 `skills/gzh-design/references/theme-{标识}.md` + 通用库 `common-components.md`（代码块/图片/GIF/小标签）——**HTML 一律从组件库取，不凭记忆手写**
+3. **转换**：`python scripts/md2wechat.py draft.md --theme <主题> -o 输出.html`（简易转换）**或**按组件库手工装配（复杂排版：章节编号、引言卡、目录导读、关键词下划线、金句块、END、签名区）
+   - **关键词下划线（核心特色）**：每个正文段落主动找 1-3 个核心短语，用 theme-index 登记的下划线 CSS 标记（即使原文无加粗也要标）
+   - **章节自动编号** 01/02/03…，末章结语用 ∞ 变体；**尾部签名区仅末尾一处**
+4. **校验**：`python skills/gzh-design/scripts/validate_gzh_html.py 输出.html` → **0 ERROR + 半角标点 0 WARN** 才放行；复杂装配跑 `component_lint.py`
+5. **交叉核对**：md 里的每个 `##` 标题、`>` 金句、`![]` 图片必须全部出现在 HTML（grep 比对）
+6. **预览交付**：产物命名 `{标题}_排版_{主题}({标识}).html`；用 `skills/gzh-design/scripts/wrap_preview.py` 生成带「复制到公众号」按钮的 `_预览.html`（一键复制，免手动全选）
+7. **平台红线**：禁 `<style>/<script>/<div>/class/id/position:fixed/float/@media/grid`；样式全内联；文字节点全用 `<span leaf="">` 包裹；图片 `max-width:100%` 不用 `width:100%`
 
 ## 7. 阶段⑥：发布
 

@@ -1,0 +1,24 @@
+# 配图引擎：喜茶拙趣（heytear 拙趣风）
+# 炼化自 andiii-wechat-workflow/skills/andiii-heytear-style（MIT）
+name: "heytear"
+
+description: "喜茶式拙趣风：手作感、拙趣、轻快有温度，适合生活/美食/轻松话题"
+
+color:
+  base: "暖白/米色底，柔和暖调"
+  accents: ["低饱和暖色点缀（杏黄/陶橙/奶油粉）"]
+  ink: "暖深棕灰，不用纯黑"
+  forbidden: ["high saturation", "corporate flat design", "3D render", "neon", "dark moody", "luxury gold"]
+
+texture:
+  paper: ["warm cream paper", "textured paper"]
+  effects: ["hand-drawn marks", "soft edges", "playful strokes", "subtle grain"]
+
+typography:
+  default: "无文字"
+  max_title: "8字（仅用户要求时，圆润手写体）"
+  font: "rounded handwritten"
+
+layout:
+  hard: ["商务风", "高饱和", "logo", "CTA", "3D", "霓虹", "玻璃拟态", "奢华金箔", "暗黑风"]
+  soft: ["corporate look", "perfect symmetry", "cold tones"]

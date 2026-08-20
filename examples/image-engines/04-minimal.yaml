@@ -1,0 +1,24 @@
+# 配图引擎：石墨极简（graphite minimal）
+# 炼化自 andiii-wechat-workflow/skills/andiii-minimal-style（MIT）
+name: "minimal"
+
+description: "石墨极简风：全灰阶、留白理性、极简克制，适合科技评论/专业观点/高端品牌"
+
+color:
+  base: "灰阶主导（浅灰底/中灰层次/石墨深灰），留白理性"
+  accents: ["最多一个低饱和点缀（可选：暗橙/雾蓝），克制使用"]
+  ink: "石墨深灰 #52525B，不用纯黑"
+  forbidden: ["colorful", "vivid", "gradient", "glassmorphism", "neon", "3D render", "flat vector cartoon"]
+
+texture:
+  paper: ["smooth matte paper", "soft gray canvas"]
+  effects: ["subtle grain", "soft shadow", "clean edges"]
+
+typography:
+  default: "无文字"
+  max_title: "10字（仅用户要求时，无衬线简洁字体）"
+  font: "clean sans-serif"
+
+layout:
+  hard: ["彩色海报", "高饱和色块", "logo", "CTA", "玻璃拟态", "霓虹", "3D", "装饰过度", "纹理堆叠"]
+  soft: ["busy composition", "high contrast color", "ornate"]

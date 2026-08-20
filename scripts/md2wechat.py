@@ -56,8 +56,8 @@ def load_yaml_flat(path: Path) -> dict:
 DEFAULT_THEME = {
     "name": "default",
     "colors": {"bg": "#ffffff", "text": "#3f3f3f", "accent": "#8c8c8c", "quote_bg": "#f7f7f5"},
-    "fonts": {"body": "'Songti SC', 'Noto Serif CJK SC', 'SimSun', serif",
-              "heading": "'Noto Serif SC', serif"},
+    "fonts": {"body": "'SimSun', 'Songti SC', 'STSong', 'Noto Serif CJK SC', 'Source Han Serif SC', serif",
+              "heading": "'SimSun', 'Songti SC', 'STSong', 'Noto Serif CJK SC', serif"},
     "layout": {"body_size": "15px", "line_height": "1.75",
                "paragraph_margin": "0 0 1em", "side_margin": "12px"},
 }
@@ -131,7 +131,7 @@ def convert(md_text: str, theme: dict) -> str:
         f'color:{c["text"]};line-height:{l["line_height"]};'
         f'margin:0;padding:0 {l["side_margin"]};'
     )
-    p_style = f'margin:{l["paragraph_margin"]};text-align:justify;'
+    p_style = f'margin:{l["paragraph_margin"]};text-align:justify;text-indent:2em;'
 
     # 通用容器样式（微信编辑器骨架）
     container_style = (
@@ -165,7 +165,7 @@ def convert(md_text: str, theme: dict) -> str:
                     cap = f'<p style="text-align:center;color:#888;font-size:12px;margin:4px 0 1.5em;">{to_leaf(alt)}</p>'
                 blocks.append(
                     f'<section><p style="text-align:center;margin:1.5em 0;">'
-                    f'<img src="{src}" alt="{alt}" style="max-width:100%;height:auto;display:block;margin:0 auto;"/></p>{cap}</section>'
+                    f'<img src="{src}" alt="{alt}" style="max-width:100%;height:auto;display:block;margin:0 auto;border-radius:8px;box-shadow:0 1px 6px rgba(0,0,0,0.08);"/></p>{cap}</section>'
                 )
                 continue
             # 标题

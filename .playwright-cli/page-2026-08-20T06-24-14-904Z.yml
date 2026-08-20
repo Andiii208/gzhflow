@@ -1,0 +1,9 @@
+- generic [active] [ref=e1]:
+  - main [ref=e2]:
+    - generic [ref=e3]:
+      - generic:
+        - generic: 乡音楚韵
+        - generic: 探索地图，选择一座城市
+      - img "湖北省地级市三维互动地图" [ref=e4]
+    - button "团队介绍" [ref=e5] [cursor=pointer]
+  - alert [ref=e6]
