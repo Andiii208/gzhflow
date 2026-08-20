@@ -9,12 +9,36 @@
  */
 import { fileURLToPath } from 'node:url'
 import { join } from 'node:path'
+import { readFileSync, existsSync } from 'node:fs'
 
 export const name = 'gzhflow-tools'
 export const inject = ['tools', 'credentials', 'subprocess']
 
-/** 仓库根：本文件位于 <repo>/dsh-preset/tools/，向上两级。junction 链接下 Node 解析为真实路径。 */
-const REPO_ROOT = fileURLToPath(new URL('../../', import.meta.url))
+/**
+ * 解析 gzhflow 仓库根（含 scripts/）。部署形态有两种：
+ *   1. 仓库内开发（junction 或直接路径）：本文件位于 <repo>/dsh-preset/tools/，向上两级即仓库根。
+ *   2. 拷贝安装（DSH 预设发现不跟 junction，需真实目录）：安装器把 dsh-preset/ 拷到
+ *      <dshHome>/.agent-presets/gzhflow/ 并在同目录写 .gzhflow-repo 指针文件。
+ * 解析优先级：env GZHFLOW_REPO > 指针文件 > 仓库布局探测。找不到时抛错（runScript 会转成友好返回）。
+ */
+function resolveRepoRoot() {
+  const envRepo = process.env.GZHFLOW_REPO
+  if (envRepo) return envRepo
+  const moduleDir = fileURLToPath(new URL('.', import.meta.url))
+  const pointer = join(moduleDir, '..', '.gzhflow-repo')
+  try {
+    const fromPointer = readFileSync(pointer, 'utf8').trim()
+    if (fromPointer && existsSync(join(fromPointer, 'scripts'))) return fromPointer
+  } catch { /* 指针文件缺失 = 仓库内布局，走下方探测 */ }
+  const repo = fileURLToPath(new URL('../../', import.meta.url))
+  if (existsSync(join(repo, 'scripts'))) return repo
+  throw new Error(
+    'gzhflow-tools: 无法定位仓库根（scripts/ 不存在）。' +
+    '若为拷贝安装请检查 <preset>/.gzhflow-repo 指针文件，或设环境变量 GZHFLOW_REPO。'
+  )
+}
+
+const REPO_ROOT = resolveRepoRoot()
 const SCRIPTS_DIR = join(REPO_ROOT, 'scripts')
 
 /** 最小 spec → JSON Schema 编译器（preset 环境无法 import defineTool）。 */

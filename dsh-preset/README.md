@@ -14,8 +14,11 @@ bash dsh-preset/install.sh
 
 （在仓库根目录运行）
 
-安装脚本把 `dsh-preset/` 链接到 `~/.dsh/.agent-presets/gzhflow/`、把 `skills/gzhflow/` 链接到 DSH skill 目录，
-改仓库即生效（junction/symlink），重复安装幂等。
+安装脚本把 `dsh-preset/` **拷贝**到 `~/.dsh/.agent-presets/gzhflow/`（真实目录，非链接——DSH 预设发现不跟随 junction/symlink），
+并在同目录写 `.gzhflow-repo` 指针文件记录仓库路径（工具经它定位 `scripts/`）；把 `skills/gzhflow/` 链接到 DSH skill 目录。
+重复安装幂等（已存在则跳过，检测到旧链接安装会自动重建为真实目录）。
+
+> 改 `dsh-preset/` 内文件后重跑安装脚本同步；`scripts/` 与 `skills/` 的改动经仓库指针 / skill 链接即时生效，无需重装。
 
 ## 使用
 
@@ -44,6 +47,6 @@ bash dsh-preset/install.sh
 
 ## FAQ
 
-- **脚本改仓库立即生效吗？** 是——preset 是指向仓库的链接，`scripts/` 与 `skills/` 改动即时可见。
+- **脚本改仓库立即生效吗？** `scripts/` 与 `skills/` 是——工具经 `.gzhflow-repo` 指针定位仓库，skill 是链接；`dsh-preset/` 内文件（persona/工具模块/安装脚本）改动后重跑一次安装脚本即可同步。
 - **凭证放哪里安全？** DSH 凭据存储（`.credentials.yaml`，0600）；不要写进 config/publish.yaml 或任何提交。
 - **个人号能直接发布吗？** 不能（2025-07 起 freepublish 回收），只能推草稿箱 + 公众号助手 App 手动发布。
