@@ -335,6 +335,20 @@ description: "gzhflow 六阶段公众号工作流：素材先行 → 写作 → 
     maxBytes: 65536
 - id: gzhflow-tools
   name: ./tools/gzhflow-tools.mjs
+- id: tool-fs
+  name: '@deepseek-ai/dsh-tool-fs'
+- id: tool-fs-search
+  name: '@deepseek-ai/dsh-tool-fs-search'
+- id: tool-str-replace-editor
+  name: '@deepseek-ai/dsh-tool-str-replace-editor'
+- id: tool-pwsh
+  name: '@deepseek-ai/dsh-tool-pwsh'
+  disabled: !!js process.platform !== 'win32'
+- id: tool-bash
+  name: '@deepseek-ai/dsh-tool-bash'
+  disabled: !!js process.platform === 'win32'
+- id: tool-skill
+  name: '@deepseek-ai/dsh-tool-skill'
 ```
 
 - [ ] **Step 3: 校验 YAML 可解析**
