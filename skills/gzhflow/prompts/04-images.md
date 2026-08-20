@@ -50,7 +50,15 @@ echo "prompt内容" | python scripts/check_image_prompt.py
 
 - 封面：16:9 生成（附加安全区约束句）+ 1:1 分享图两版
 - 内文配图：16:9 横构图，prompt 显式锚定横向元素
-- 图生后端：OpenAI 兼容接口（`scripts/crop_image.py` 同目录的图生脚本或直接调 config 配置的 base_url/model）
+- 图生后端：OpenAI 兼容接口，用 `scripts/generate_image.py` 调用（config 的 base_url/model/api_key_env）：
+
+```bash
+python scripts/generate_image.py --prompt "<四段式 prompt>" --ratio 16:9 -o cover_raw.png    # 封面原始图（Step 6 再裁 2.35:1）
+python scripts/generate_image.py --prompt "<四段式 prompt>" --ratio 1:1 -o share_raw.png     # 1:1 分享图
+python scripts/generate_image.py --prompt "<四段式 prompt>" --ratio 16:9 -o inline_raw.png   # 内文配图
+```
+
+  缺 API key / 缺配置时脚本退出码 2 并报错；生成成功打印保存路径（exit 0）。
 
 ### Step 6：裁剪
 

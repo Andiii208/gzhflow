@@ -44,6 +44,7 @@ jobs:
           python -m py_compile scripts/md2wechat.py
           python -m py_compile scripts/validate_gzh_html.py
           python -m py_compile scripts/crop_image.py
+          python -m py_compile scripts/generate_image.py
           python -m py_compile scripts/publish_draft.py
       - name: 去 AI 味机器门冒烟（干净文本通过）
         run: |

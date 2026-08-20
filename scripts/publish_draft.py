@@ -65,9 +65,34 @@ def load_credentials(args):
 
 
 # ============ API 调用 ============
+def _die_api_error(e: Exception, context: str) -> None:
+    """urllib 网络/HTTP 错误 → 友好信息 + exit(1)，不吐 traceback。"""
+    if isinstance(e, urllib.error.HTTPError):
+        body = e.read().decode("utf-8", errors="replace")[:300]
+        print(f"❌ 微信 API HTTP {e.code}（{context}）: {body}", file=sys.stderr)
+    else:
+        print(f"❌ 微信 API 网络错误（{context}）: {e.reason}", file=sys.stderr)
+    sys.exit(1)
+
+
+def _die_wechat_error(resp: dict, context: str) -> None:
+    """微信业务错误 → 40164（IP 白名单）给友好提示，其余给原始响应；exit(1)。"""
+    errcode = resp.get("errcode")
+    errmsg = str(resp.get("errmsg", ""))
+    if errcode == 40164 or "invalid ip" in errmsg:
+        print(f"❌ {context}失败: IP 不在白名单（errcode 40164 invalid ip）。"
+              f"请把当前出口 IP 加入「公众号后台 → 设置与开发 → 基本配置 → IP 白名单」", file=sys.stderr)
+    else:
+        print(f"❌ {context}失败: {resp}", file=sys.stderr)
+    sys.exit(1)
+
+
 def api_get(url: str) -> dict:
-    with urllib.request.urlopen(url, timeout=15) as r:
-        return json.loads(r.read().decode("utf-8"))
+    try:
+        with urllib.request.urlopen(url, timeout=15) as r:
+            return json.loads(r.read().decode("utf-8"))
+    except (urllib.error.HTTPError, urllib.error.URLError) as e:
+        _die_api_error(e, "api_get")
 
 
 def api_post(url: str, data: dict, files: dict = None) -> dict:
@@ -90,16 +115,28 @@ def api_post(url: str, data: dict, files: dict = None) -> dict:
             url, data=json.dumps(data, ensure_ascii=False).encode("utf-8"),
             headers={"Content-Type": "application/json"},
         )
-    with urllib.request.urlopen(req, timeout=30) as r:
-        return json.loads(r.read().decode("utf-8"))
+    try:
+        with urllib.request.urlopen(req, timeout=30) as r:
+            return json.loads(r.read().decode("utf-8"))
+    except (urllib.error.HTTPError, urllib.error.URLError) as e:
+        _die_api_error(e, "api_post")
+
+
+def _content_type(path: Path) -> str:
+    """按文件后缀判断上传 Content-Type（.png→image/png、.gif→image/gif，默认 image/jpeg）。"""
+    return {
+        ".png": "image/png",
+        ".gif": "image/gif",
+        ".jpg": "image/jpeg",
+        ".jpeg": "image/jpeg",
+    }.get(path.suffix.lower(), "image/jpeg")
 
 
 def get_token(app_id: str, app_secret: str) -> str:
     url = f"{API_BASE}/cgi-bin/token?grant_type=client_credential&appid={app_id}&secret={app_secret}"
     resp = api_get(url)
     if "access_token" not in resp:
-        print(f"❌ 获取 token 失败: {resp}", file=sys.stderr)
-        sys.exit(1)
+        _die_wechat_error(resp, "获取 token")
     return resp["access_token"]
 
 
@@ -108,10 +145,9 @@ def upload_image(token: str, img_path: Path) -> str:
     """上传正文图片（media/uploadimg），返回 https URL。"""
     content = img_path.read_bytes()
     url = f"{API_BASE}/cgi-bin/media/uploadimg?access_token={token}"
-    resp = api_post(url, {}, files={"media": (img_path.name, content, "image/jpeg")})
+    resp = api_post(url, {}, files={"media": (img_path.name, content, _content_type(img_path))})
     if "url" not in resp:
-        print(f"❌ 上传图片失败 {img_path}: {resp}", file=sys.stderr)
-        sys.exit(1)
+        _die_wechat_error(resp, "上传正文图片")
     return resp["url"]
 
 
@@ -119,10 +155,9 @@ def upload_cover(token: str, cover_path: Path) -> str:
     """上传封面素材（media/add_material），返回 media_id。"""
     content = cover_path.read_bytes()
     url = f"{API_BASE}/cgi-bin/media/add_material?access_token={token}&type=image"
-    resp = api_post(url, {}, files={"media": (cover_path.name, content, "image/jpeg")})
+    resp = api_post(url, {}, files={"media": (cover_path.name, content, _content_type(cover_path))})
     if "media_id" not in resp:
-        print(f"❌ 上传封面失败 {cover_path}: {resp}", file=sys.stderr)
-        sys.exit(1)
+        _die_wechat_error(resp, "上传封面")
     return resp["media_id"]
 
 
@@ -142,6 +177,23 @@ def upload_html_images(token: str, html_text: str, base_dir: Path) -> str:
     return re.sub(r'src="([^"]+)"', _replace, html_text)
 
 
+# ============ 发布偏好（config/publish.yaml 的 publish 段） ============
+def load_publish_config() -> dict:
+    """极简读取 config/publish.yaml 的 publish.default_author / publish.open_comment。"""
+    cfg = ROOT / "config" / "publish.yaml"
+    result = {"default_author": "", "open_comment": True}
+    if not cfg.exists():
+        return result
+    text = cfg.read_text(encoding="utf-8")
+    m = re.search(r"default_author\s*[:=]\s*[\"']?([^\"'\n]+)", text)
+    if m:
+        result["default_author"] = m.group(1).strip().strip("\"'")
+    m = re.search(r"open_comment\s*[:=]\s*(\w+)", text)
+    if m:
+        result["open_comment"] = m.group(1).strip().lower() in ("true", "1", "yes")
+    return result
+
+
 # ============ 主流程 ============
 def main():
     ap = argparse.ArgumentParser(description="gzhflow 推草稿箱（微信官方 API）")
@@ -149,7 +201,7 @@ def main():
     ap.add_argument("--title", required=True, help="文章标题")
     ap.add_argument("--author", help="作者（默认 config 或 frontmatter）")
     ap.add_argument("--summary", help="摘要（默认截取正文前 120 字）")
-    ap.add_argument("--cover", required=True, help="封面图路径（2.35:1 ≈ 900x383）")
+    ap.add_argument("--cover", help="封面图路径（2.35:1 ≈ 900x383；缺省读 frontmatter 的 coverImage）")
     ap.add_argument("--app-id", help="AppID（覆盖环境变量）")
     ap.add_argument("--app-secret", help="AppSecret（覆盖环境变量）")
     ap.add_argument("--dry-run", action="store_true", help="验证全链路但不推送（取 token 前返回）")
@@ -159,18 +211,20 @@ def main():
     if not html_path.exists():
         print(f"❌ HTML 不存在: {html_path}", file=sys.stderr)
         sys.exit(2)
-    cover = Path(args.cover)
-    if not cover.exists():
-        print(f"❌ 封面不存在: {cover}", file=sys.stderr)
-        sys.exit(2)
 
-    # 元数据：CLI 参数 > frontmatter
+    # 元数据：CLI 参数 > frontmatter（md 侧车文件）
     html_text = html_path.read_text(encoding="utf-8")
     author = args.author
     summary = args.summary
     title = args.title
-    md_side = html_path.with_suffix(".md")
-    if md_side.exists():
+    cover = Path(args.cover) if args.cover else None
+
+    # 侧车 md：优先同名 .md，其次工作流产物 draft.md（两者都在 output_dir 内）
+    md_side = next(
+        (p for p in (html_path.with_suffix(".md"), html_path.parent / "draft.md") if p.exists()),
+        None,
+    )
+    if md_side:
         md_text = md_side.read_text(encoding="utf-8")
         fm = re.search(r"^---\s*\n(.*?)\n---", md_text, re.S)
         if fm:
@@ -179,15 +233,29 @@ def main():
                              ("description", r"description\s*:\s*(.+)"),
                              ("coverImage", r"coverImage\s*:\s*(.+)")):
                 m = re.search(pat, fm.group(1))
-                if m and m.group(1).strip() and m.group(1).strip() != "null":
-                    if key == "title":
-                        title = title or m.group(1).strip()
-                    elif key == "author":
-                        author = author or m.group(1).strip()
-                    elif key == "description":
-                        summary = summary or m.group(1).strip()
-                    elif key == "coverImage" and not args.cover:
-                        cover = html_path.parent / m.group(1).strip()
+                val = m.group(1).strip() if m else ""
+                if not val or val == "null":
+                    continue
+                if key == "title":
+                    title = title or val
+                elif key == "author":
+                    author = author or val
+                elif key == "description":
+                    summary = summary or val
+                elif key == "coverImage" and cover is None:
+                    cover = html_path.parent / val
+
+    if cover is None:
+        print("❌ 未指定封面：请用 --cover，或在 frontmatter 写 coverImage", file=sys.stderr)
+        sys.exit(2)
+    if not cover.exists():
+        print(f"❌ 封面不存在: {cover}", file=sys.stderr)
+        sys.exit(2)
+
+    # 作者兜底：--author > frontmatter author > config/publish.yaml 的 publish.default_author > 空
+    pub_cfg = load_publish_config()
+    if not author:
+        author = pub_cfg["default_author"] or ""
 
     if args.dry_run:
         print("✅ dry-run 通过：参数/文件就绪（未取 token，零风险）")
@@ -222,7 +290,7 @@ def main():
         "digest": summary,
         "content": html_remote,
         "content_source_url": "",
-        "need_open_comment": 1,
+        "need_open_comment": 1 if pub_cfg["open_comment"] else 0,
         "thumb_media_id": cover_media_id,
     }
     resp = api_post(f"{API_BASE}/cgi-bin/draft/add?access_token={token}", {"articles": [article]})
@@ -230,8 +298,7 @@ def main():
         print(f"✅ 已推送到草稿箱: {resp['media_id']}")
         print("   请在「公众号助手 App → 草稿箱」检查后手动发布（个人号无法 API 直接发布）")
         sys.exit(0)
-    print(f"❌ 创建草稿失败: {resp}", file=sys.stderr)
-    sys.exit(1)
+    _die_wechat_error(resp, "创建草稿")
 
 
 if __name__ == "__main__":

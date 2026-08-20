@@ -21,7 +21,7 @@
 | 脚本 | 检查什么 | 退出码语义 |
 |---|---|---|
 | `ai_flavor_score.py` | 去 AI 味：硬禁令（冒号/破折号/黑话/模型路标/翻案句）+ WARN 项 | 0=通过；1=有 FAIL（硬禁令命中） |
-| `check_image_prompt.py` | 配图 prompt：必需词（纸感/纹理）+ 规避词 | 0=PASS；1=FAIL（硬规避命中）；2=WARN |
+| `check_image_prompt.py` | 配图 prompt：必需词（纸感/纹理）+ 规避词 | 0=PASS（含 WARN，不阻断）；1=FAIL（硬规避或必需项缺失） |
 | `validate_gzh_html.py` | HTML：标签平衡 + 禁用标签 + 半角标点 | 0=通过；1=有 ERROR |
 | `publish_draft.py --dry-run` | 发布全链路验证（不碰微信） | 0=就绪；非0=参数/文件问题 |
 

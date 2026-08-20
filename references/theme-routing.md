@@ -29,9 +29,9 @@ layout:
   line_height: "1.75"          # 行距（微信默认 1.0 太挤）
   paragraph_margin: "0 0 1em"  # 段间距
   side_margin: "12px"          # 页边距
-signature:
-  template: "—— {author}"      # 签名模板
 ```
+
+> 签名不在此定义：签名由 `config/workflow.yaml` 的 `signature` 定义、写入 md 正文（见下文「签名约定」），主题文件不含 signature 段。
 
 ## 排版通用规范（微信公众号）
 

@@ -35,8 +35,8 @@ VOID_TAGS = {"img", "br", "hr", "input"}
 
 TAG_RE = re.compile(r"<(/?)([a-zA-Z][a-zA-Z0-9]*)((?:\s[^<>]*?)?)(/?)>")
 
-# 半角标点（中文语境应为全角）
-HALF_WIDTH_PUNCT = re.compile(r"[,;!?]")  # 排除英文句子中的正常用法，只提示
+# 半角标点（只匹配「中文字符紧邻的半角标点」；英文句内标点/时间戳等豁免）
+HALF_WIDTH_PUNCT = re.compile(r"[\u4e00-\u9fff][,;!?]")
 
 ERRORS = []
 WARNINGS = []

@@ -79,9 +79,10 @@ gzhflow/
 │   │   └── 01-daily-sketch.md     # 示例：日常白描风（脱敏自原槽边往事式）
 │   ├── image-engines/             # 配图风格引擎示例
 │   │   ├── engine-template.md     # 四件套引擎空白模板
-│   │   └── 01-watercolor.md       # 示例：手绘水彩引擎（脱敏）
+│   │   └── 01-watercolor.yaml      # 示例：手绘水彩引擎（脱敏）
 │   └── themes/                    # 排版主题示例（md2wechat 主题定义）
-│       └── 01-zen-whitespace.yaml # 示例：留白禅意主题
+│       ├── 01-zen-whitespace.yaml # 示例：留白禅意主题
+│       └── 02-minimal.yaml        # 示例：极简理性主题
 │
 ├── scripts/                       # 工具层（纯 CLI，stdlib，跨 Agent）
 │   ├── validate_repo.py           # 仓库校验（链接/引用/secret/版本）

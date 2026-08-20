@@ -10,7 +10,7 @@
 用法:
     echo "prompt内容" | python scripts/check_image_prompt.py
     python scripts/check_image_prompt.py <prompt文件>
-退出码: 0 = PASS, 1 = FAIL（硬规避或必需项缺失）, 2 = WARN
+退出码: 0 = PASS（含 WARN，WARN 不阻断）, 1 = FAIL（硬规避或必需项缺失）
 """
 import argparse
 import re
@@ -103,8 +103,11 @@ def main():
             print("   ", p)
         sys.exit(1)
 
-    print("✅ PASS")
-    sys.exit(2 if warns else 0)
+    if warns:
+        print("✅ PASS（含 WARN，不阻断，建议优化）")
+    else:
+        print("✅ PASS")
+    sys.exit(0)
 
 
 if __name__ == "__main__":

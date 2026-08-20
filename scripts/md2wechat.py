@@ -13,6 +13,7 @@
 依赖: 无（纯 stdlib；YAML 用极简解析，主题文件为简单键值结构）
 """
 import argparse
+import html
 import os
 import re
 import sys
@@ -37,7 +38,10 @@ def load_yaml_flat(path: Path) -> dict:
         m = re.match(r"^(\S+):\s*(.*)$", line.strip())
         if not m:
             continue
-        key, val = m.group(1), m.group(2).strip().strip('"').strip("'")
+        key, val = m.group(1), m.group(2).strip()
+        # 只在整串值被一对引号完整包裹时才剥引号，避免误伤字体栈里的内层引号
+        if len(val) >= 2 and val[0] == val[-1] and val[0] in "\"'":
+            val = val[1:-1]
         if indent == 0:
             if val:
                 data[key] = val
@@ -95,8 +99,17 @@ def strip_frontmatter(text: str) -> str:
     return text
 
 
+def _code_block_html(code: str) -> str:
+    """代码块内容 → HTML：丢弃首行语言标签（```python 的 python）+ HTML 转义。"""
+    lines = code.strip("`").strip("\n").splitlines()
+    if lines and re.match(r"^[A-Za-z0-9_+.\-]*$", lines[0].strip()):
+        lines = lines[1:]
+    return html.escape("\n".join(lines))
+
+
 def inline(text: str) -> str:
-    """处理行内标记：加粗/斜体/行内代码/链接。"""
+    """处理行内标记：加粗/斜体/行内代码/链接（先 HTML 转义再套标记）。"""
+    text = html.escape(text)
     text = re.sub(r"\*\*(.+?)\*\*", r'<strong style="font-weight:bold;color:#444;">\1</strong>', text)
     text = re.sub(r"\*(.+?)\*", r"<em>\1</em>", text)
     text = re.sub(r"`(.+?)`", r'<code style="background:#f5f5f5;padding:1px 4px;border-radius:2px;font-family:monospace;">\1</code>', text)
@@ -126,79 +139,91 @@ def convert(md_text: str, theme: dict) -> str:
     )
 
     blocks = []
-    for raw in re.split(r"\n\s*\n", md_text):
-        block = raw.strip()
-        if not block:
+    # 先按 ``` 围栏切分文档：代码块整体处理（含空行的围栏代码块不会被按空行切碎），
+    # 围栏外的 Markdown 再按空行切块。
+    for chunk in re.split(r"(```[\s\S]*?```)", md_text):
+        chunk = chunk.strip("\n")
+        if not chunk.strip():
             continue
-        # 图片
-        img = re.match(r"!\[([^\]]*)\]\(([^)]+)\)", block)
-        if img:
-            alt, src = img.group(1), img.group(2)
-            cap = ""
-            if alt:
-                cap = f'<p style="text-align:center;color:#888;font-size:12px;margin:4px 0 1.5em;">{to_leaf(alt)}</p>'
-            blocks.append(
-                f'<section><p style="text-align:center;margin:1.5em 0;">'
-                f'<img src="{src}" alt="{alt}" style="max-width:100%;height:auto;display:block;margin:0 auto;"/></p>{cap}</section>'
-            )
-            continue
-        # 标题
-        h = re.match(r"^(#{1,4})\s+(.+)$", block)
-        if h:
-            level = len(h.group(1))
-            size = {1: "20px", 2: "18px", 3: "16px", 4: "15px"}[level]
-            blocks.append(
-                f'<section><h{level} style="font-family:{f["heading"]};font-size:{size};'
-                f'color:{c["text"]};font-weight:bold;margin:1.2em 0 0.6em;line-height:1.4;">'
-                f'{to_leaf(inline(h.group(2)))}</h{level}></section>'
-            )
-            continue
-        # 引用（金句）
-        if block.startswith(">"):
-            quote_lines = [re.sub(r"^>\s?", "", ln) for ln in block.splitlines()]
-            quote_text = "<br/>".join(inline(q) for q in quote_lines)
-            blocks.append(
-                f'<section><blockquote style="background:{c["quote_bg"]};border-left:3px solid {c["accent"]};'
-                f'padding:10px 14px;margin:1em 0;color:{c["text"]};">'
-                f'{to_leaf(quote_text)}</blockquote></section>'
-            )
-            continue
-        # 分割线
-        if re.match(r"^(-{3,}|\*{3,}|_{3,})$", block):
-            blocks.append(f'<section><hr style="border:none;border-top:1px solid {c["accent"]};margin:1.5em 0;"/></section>')
-            continue
-        # 列表
-        if all(re.match(r"^[-*]\s+", ln) for ln in block.splitlines() if ln.strip()):
-            li_items = [re.sub(r"^[-*]\s+", "", ln) for ln in block.splitlines() if ln.strip()]
-            items = "".join(
-                f'<li style="margin:4px 0;">{to_leaf(inline(li))}</li>' for li in li_items
-            )
-            blocks.append(f'<section><ul style="padding-left:1.5em;margin:0.8em 0;">{items}</ul></section>')
-            continue
-        # 有序列表
-        if all(re.match(r"^\d+[.、]\s+", ln) for ln in block.splitlines() if ln.strip()):
-            li_items = [re.sub(r"^\d+[.、]\s+", "", ln) for ln in block.splitlines() if ln.strip()]
-            items = "".join(
-                f'<li style="margin:4px 0;">{to_leaf(inline(li))}</li>' for li in li_items
-            )
-            blocks.append(f'<section><ol style="padding-left:1.5em;margin:0.8em 0;">{items}</ol></section>')
-            continue
-        # 代码块
-        if block.startswith("```"):
-            code = block.strip("`").strip("\n")
+        if chunk.startswith("```"):
             blocks.append(
                 f'<section><pre style="background:#f6f8fa;padding:12px 14px;border-radius:4px;'
                 f'overflow-x:auto;font-family:monospace;font-size:13px;line-height:1.5;">'
-                f'{code}</pre></section>'
+                f'{_code_block_html(chunk)}</pre></section>'
             )
             continue
-        # 普通段落（按行，关键句独立成段交给作者控制）
-        paras = []
-        for ln in block.splitlines():
-            ln = ln.strip()
-            if ln:
-                paras.append(f'<p style="{p_style}">{to_leaf(inline(ln))}</p>')
-        blocks.append("<section>" + "".join(paras) + "</section>")
+        for raw in re.split(r"\n\s*\n", chunk):
+            block = raw.strip()
+            if not block:
+                continue
+            # 图片
+            img = re.match(r"!\[([^\]]*)\]\(([^)]+)\)", block)
+            if img:
+                alt, src = img.group(1), img.group(2)
+                cap = ""
+                if alt:
+                    cap = f'<p style="text-align:center;color:#888;font-size:12px;margin:4px 0 1.5em;">{to_leaf(alt)}</p>'
+                blocks.append(
+                    f'<section><p style="text-align:center;margin:1.5em 0;">'
+                    f'<img src="{src}" alt="{alt}" style="max-width:100%;height:auto;display:block;margin:0 auto;"/></p>{cap}</section>'
+                )
+                continue
+            # 标题
+            h = re.match(r"^(#{1,4})\s+(.+)$", block)
+            if h:
+                level = len(h.group(1))
+                size = {1: "20px", 2: "18px", 3: "16px", 4: "15px"}[level]
+                blocks.append(
+                    f'<section><h{level} style="font-family:{f["heading"]};font-size:{size};'
+                    f'color:{c["text"]};font-weight:bold;margin:1.2em 0 0.6em;line-height:1.4;">'
+                    f'{to_leaf(inline(h.group(2)))}</h{level}></section>'
+                )
+                continue
+            # 引用（金句）
+            if block.startswith(">"):
+                quote_lines = [re.sub(r"^>\s?", "", ln) for ln in block.splitlines()]
+                quote_text = "<br/>".join(inline(q) for q in quote_lines)
+                blocks.append(
+                    f'<section><blockquote style="background:{c["quote_bg"]};border-left:3px solid {c["accent"]};'
+                    f'padding:10px 14px;margin:1em 0;color:{c["text"]};">'
+                    f'{to_leaf(quote_text)}</blockquote></section>'
+                )
+                continue
+            # 分割线
+            if re.match(r"^(-{3,}|\*{3,}|_{3,})$", block):
+                blocks.append(f'<section><hr style="border:none;border-top:1px solid {c["accent"]};margin:1.5em 0;"/></section>')
+                continue
+            # 列表
+            if all(re.match(r"^[-*]\s+", ln) for ln in block.splitlines() if ln.strip()):
+                li_items = [re.sub(r"^[-*]\s+", "", ln) for ln in block.splitlines() if ln.strip()]
+                items = "".join(
+                    f'<li style="margin:4px 0;">{to_leaf(inline(li))}</li>' for li in li_items
+                )
+                blocks.append(f'<section><ul style="padding-left:1.5em;margin:0.8em 0;">{items}</ul></section>')
+                continue
+            # 有序列表
+            if all(re.match(r"^\d+[.、]\s+", ln) for ln in block.splitlines() if ln.strip()):
+                li_items = [re.sub(r"^\d+[.、]\s+", "", ln) for ln in block.splitlines() if ln.strip()]
+                items = "".join(
+                    f'<li style="margin:4px 0;">{to_leaf(inline(li))}</li>' for li in li_items
+                )
+                blocks.append(f'<section><ol style="padding-left:1.5em;margin:0.8em 0;">{items}</ol></section>')
+                continue
+            # 代码块（未闭合围栏兜底；正常围栏已在顶层整体处理）
+            if block.startswith("```"):
+                blocks.append(
+                    f'<section><pre style="background:#f6f8fa;padding:12px 14px;border-radius:4px;'
+                    f'overflow-x:auto;font-family:monospace;font-size:13px;line-height:1.5;">'
+                    f'{_code_block_html(block)}</pre></section>'
+                )
+                continue
+            # 普通段落（按行，关键句独立成段交给作者控制）
+            paras = []
+            for ln in block.splitlines():
+                ln = ln.strip()
+                if ln:
+                    paras.append(f'<p style="{p_style}">{to_leaf(inline(ln))}</p>')
+            blocks.append("<section>" + "".join(paras) + "</section>")
 
     html = (
         f'<section style="{container_style}">'
