@@ -124,11 +124,32 @@ def check_versions():
             errors.append(f"[frontmatter] {sk.relative_to(ROOT)}: version 缺失或格式错误（需 x.y.z）")
 
 
+# ---- 5. dsh-preset 完整性（工具 ↔ 脚本映射） ----
+DSH_PRESET_FILES = ("preset.yml", "agent.cordis.yml", "tools/gzhflow-tools.mjs",
+                    "install.ps1", "install.sh", "README.md")
+
+
+def check_dsh_preset():
+    preset_dir = ROOT / "dsh-preset"
+    if not preset_dir.exists():
+        return  # 仓库未启用 dsh-preset，跳过
+    for rel in DSH_PRESET_FILES:
+        if not (preset_dir / rel).exists():
+            errors.append(f"[dsh-preset] 缺少文件: dsh-preset/{rel}")
+    tools_mjs = preset_dir / "tools" / "gzhflow-tools.mjs"
+    if tools_mjs.exists():
+        text = tools_mjs.read_text(encoding="utf-8")
+        for m in re.finditer(r"['\"]([a-z0-9_]+\.py)['\"]", text):
+            if not (ROOT / "scripts" / m.group(1)).exists():
+                errors.append(f"[dsh-preset] 工具引用了不存在的脚本: scripts/{m.group(1)}")
+
+
 def main():
     check_links()
     check_refs()
     check_secrets()
     check_versions()
+    check_dsh_preset()
     if errors:
         print(f"🔴 校验失败: {len(errors)} 个问题")
         for e in errors:
