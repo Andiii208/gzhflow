@@ -23,10 +23,23 @@ bash dsh-preset/install.sh
 ## 使用
 
 1. 在 DSH 新建会话，选择预设「gzhflow 公众号主编」。
-2. 说「用 gzhflow 写一篇关于 XX 的文章」。
-3. 按六阶段推进：每阶段跑对应 gzhflow_* 工具质检，①②③ 完成输出全文审阅。
+2. 会话开始会自动做**环境自检**（`gzhflow_check_env`），按结果引导你配置，然后才开始流程。
+3. 说「用 gzhflow 写一篇关于 XX 的文章」。
+4. 按六阶段推进：每阶段跑对应 gzhflow_* 工具质检，①②③ 完成输出全文审阅。
 
-## 凭证（仅发布阶段需要）
+## 首次使用：环境自检（必读）
+
+预设会话的第一步是 `gzhflow_check_env` 环境自检，凭据分**必填 / 选填**两档：
+
+| 配置项 | 级别 | 不配置会怎样 |
+|---|---|---|
+| `WECHAT_APP_ID` / `WECHAT_APP_SECRET`（公众号） | **必填** | 阻塞：引导你填好之前不开始写作流程（发布是必经阶段） |
+| `image_backend`（base_url/model，config/workflow.yaml） | 选填 | ④配图走真实图轨：用你提供的素材图，或 AI 用 web_search 找合规真实图 |
+| `IMAGE_API_KEY`（图生 key，.credentials.yaml） | 选填 | 同上；想用 AI 生图时再配置 |
+
+**配置方式**：编辑 `~/.dsh/.credentials.yaml` 与仓库 `config/workflow.yaml`（见下两节），保存即生效。
+
+## 凭证（必填，仅发布阶段用）
 
 推草稿箱需要公众号 AppID/AppSecret，存于 DSH 凭据存储（`~/.dsh/.credentials.yaml`，0600，不写入本仓库）：
 

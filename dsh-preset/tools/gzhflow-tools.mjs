@@ -119,6 +119,60 @@ export function apply(ctx, config) {
     parameters: toJsonSchema(tool.parameters),
   }))
 
+  // 首次使用环境自检：会话开始第一步调用。只返回「已配置/缺失」状态，绝不返回凭据值。
+  registerTool({
+    name: 'gzhflow_check_env',
+    description: 'gzhflow 环境自检（会话开始第一步）：检查公众号发布凭据（必填）与图生后端（选填）配置状态，返回结构化结果与引导建议。只返回是否已配置，不返回任何凭据值。',
+    parameters: {},
+    output: { schema: { type: 'object' }, render: (_a, v) => [{ type: 'text', text: JSON.stringify(v, null, 2) }] },
+    async execute() {
+      const credentials = ctx.get('credentials')
+      const read = async (ref) => {
+        if (credentials) {
+          const res = await credentials.resolve(ref)
+          if (res?.value !== undefined && res?.value !== '') return true
+        }
+        return !!(process.env[ref] && process.env[ref].length > 0)
+      }
+      const wechatId = await read('WECHAT_APP_ID')
+      const wechatSecret = await read('WECHAT_APP_SECRET')
+      const backend = readImageBackendConfig()
+      const keyName = backend.api_key_env || 'IMAGE_API_KEY'
+      const imageKey = await read(keyName)
+      const wechatReady = wechatId && wechatSecret
+      const backendReady = !!(backend.base_url && backend.model)
+      const imageReady = backendReady && imageKey
+
+      const wechatMissing = []
+      if (!wechatId) wechatMissing.push('WECHAT_APP_ID')
+      if (!wechatSecret) wechatMissing.push('WECHAT_APP_SECRET')
+      const imageMissing = []
+      if (!backendReady) imageMissing.push('image_backend.base_url/model（config/workflow.yaml）')
+      if (!imageKey) imageMissing.push(keyName)
+
+      let recommendation
+      if (!wechatReady) {
+        recommendation = '❌ 公众号凭据未配置（必填）：请编辑 ~/.dsh/.credentials.yaml 添加 ' +
+          wechatMissing.join(' 与 ') + '，配置完成前不开始写作流程。'
+      } else if (!imageReady) {
+        recommendation = '⚠️ 图生后端未配置（选填）：④配图将走真实图轨（用户提供素材图，或 web_search 找合规真实图）；' +
+          '如需 AI 生图，配置 config/workflow.yaml 的 image_backend 与 .credentials.yaml 的 ' + keyName + '。'
+      } else {
+        recommendation = '✅ 公众号凭据与图生后端均已配置，可完整跑六阶段。'
+      }
+
+      return {
+        wechat_ready: wechatReady,
+        wechat_missing: wechatMissing,
+        image_generation_ready: imageReady,
+        image_backend_configured: backendReady,
+        image_key_configured: imageKey,
+        image_key_env: keyName,
+        recommendation,
+      }
+    },
+  })
+
   registerTool({
     name: 'gzhflow_deai_score',
     description: 'gzhflow 去 AI 味机器门（ai_flavor_score.py）。exit_code 0=硬禁令清零，1=有 FAIL（必须清零才能交稿）；output 含 FAIL/WARN 明细。',
