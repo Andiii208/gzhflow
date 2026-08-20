@@ -29,6 +29,8 @@ def is_skipped(p: Path) -> bool:
         return True
     if "generated" in parts or "outputs" in parts:
         return True
+    if ".superpowers" in parts:
+        return True
     if "__pycache__" in parts or p.suffix == ".pyc":
         return True
     return p.suffix not in (".md", ".py", ".sh", ".yaml", ".yml", ".json", ".toml", ".txt")
