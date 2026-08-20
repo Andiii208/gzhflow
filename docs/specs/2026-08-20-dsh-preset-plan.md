@@ -377,6 +377,8 @@ git commit -m "feat(dsh-preset): preset 清单（persona + 工具模块挂载）
 
 - [ ] **Step 1: 写 `dsh-preset/install.ps1`**
 
+> 注意：install.ps1 必须保存为 UTF-8 with BOM（PS 5.1 无 BOM 会把中文按 ANSI 解码导致解析失败）；`$Label:` 在 PS 5.1 会被解析为 drive-qualified 引用，须写 `${Label}:`。
+
 ```powershell
 # gzhflow DSH preset 安装脚本（Windows）：junction 链接，改仓库即生效，幂等。
 $ErrorActionPreference = 'Stop'
@@ -392,7 +394,7 @@ function Link-Dir {
     return
   }
   New-Item -ItemType Junction -Path $Target -Target $Source | Out-Null
-  Write-Host "✅ 已链接 $Label: $Target -> $Source"
+  Write-Host "✅ 已链接 ${Label}: $Target -> $Source"
 }
 
 Link-Dir -Source (Join-Path $repoRoot 'dsh-preset') -Target (Join-Path $dshHome '.agent-presets\gzhflow') -Label 'preset'
