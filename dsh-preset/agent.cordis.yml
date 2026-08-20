@@ -9,6 +9,7 @@
       - 质量门是硬门槛：每阶段跑对应 gzhflow_* 工具，FAIL 不进入下一阶段。
       - 默认停靠点：①②③ 阶段完成后必须输出全文给用户审阅，用户确认后才进入下一阶段。
       - 发布走草稿箱（gzhflow_publish_draft 先 dry_run=true 验证），最终由用户在公众号助手 App 手动发布。
+      - ④ 配图需要图生后端：先引导用户配置仓库 config/workflow.yaml 的 image_backend（base_url/model，参考 config/workflow.example.yaml）与 DSH 凭据 IMAGE_API_KEY（编辑 ~/.dsh/.credentials.yaml）；未配置时按 gzhflow_generate_image 返回的提示引导，别跳过步骤硬生成。
       - 流程细则以 gzhflow skill 的 SKILL.md 为准：先加载 skill；若未加载，直接读仓库 skills/gzhflow/SKILL.md。
 - id: agent-instructions
   name: '@deepseek-ai/dsh-agent-instructions'

@@ -41,6 +41,27 @@ WECHAT_APP_SECRET: <你的AppSecret>
 
 未配置时 `gzhflow_publish_draft` 返回友好错误提示配置，不会泄露或误用。
 
+## 图生后端（仅④配图阶段需要）
+
+`gzhflow_generate_image` 调用 OpenAI 兼容 `/images/generations` 端点，需要两处配置：
+
+1. **后端定义**：复制仓库 `config/workflow.example.yaml` 为 `config/workflow.yaml`，填 `image_backend`：
+
+```yaml
+image_backend:
+  base_url: "https://dashscope.aliyuncs.com/compatible-mode/v1"  # 你的服务商（DashScope/MiniMax/OpenAI 等兼容端点）
+  model: "wanx2.1-t2i-turbo"      # 模型名按服务商文档填
+  api_key_env: "IMAGE_API_KEY"    # 默认 IMAGE_API_KEY
+```
+
+2. **API key**：编辑 `~/.dsh/.credentials.yaml` 添加：
+
+```yaml
+IMAGE_API_KEY: <你的图生服务商 API key>
+```
+
+未配置时 `gzhflow_generate_image` 返回可操作的引导提示（指出改哪个文件、填哪个键），不会静默失败。
+
 ## 工具一览
 
 | 工具 | 对应脚本 | 用途 |

@@ -41,6 +41,32 @@ function resolveRepoRoot() {
 const REPO_ROOT = resolveRepoRoot()
 const SCRIPTS_DIR = join(REPO_ROOT, 'scripts')
 
+/**
+ * 极简读取仓库 config/workflow.yaml 的 image_backend 段（base_url/model/api_key_env）。
+ * 纯行扫描，零依赖；文件缺失/解析失败返回空对象（调用方给引导信息）。
+ */
+function readImageBackendConfig() {
+  const cfgPath = join(REPO_ROOT, 'config', 'workflow.yaml')
+  let text
+  try {
+    text = readFileSync(cfgPath, 'utf8')
+  } catch {
+    return {}
+  }
+  const out = {}
+  let inBackend = false
+  for (const line of text.split(/\r?\n/)) {
+    const trimmed = line.trim()
+    if (!trimmed || trimmed.startsWith('#')) continue
+    if (/^image_backend\s*:/.test(trimmed)) { inBackend = true; continue }
+    if (/^\S/.test(trimmed)) inBackend = false // 顶层新键，退出 image_backend 段
+    if (!inBackend) continue
+    const m = /^(base_url|model|api_key_env)\s*:\s*"?([^"\s]+)"?/.exec(trimmed)
+    if (m) out[m[1]] = m[2]
+  }
+  return out
+}
+
 /** 最小 spec → JSON Schema 编译器（preset 环境无法 import defineTool）。 */
 function toJsonSchema(spec) {
   const properties = {}
@@ -152,7 +178,7 @@ export function apply(ctx, config) {
 
   registerTool({
     name: 'gzhflow_generate_image',
-    description: 'gzhflow 图生（generate_image.py，OpenAI 兼容接口）。exit_code 0=成功，1=API 失败，2=缺 key/配置；output 含保存路径。',
+    description: 'gzhflow 图生（generate_image.py，OpenAI 兼容接口）。需先配置图生后端：仓库 config/workflow.yaml 的 image_backend（base_url/model）+ DSH 凭据 IMAGE_API_KEY。exit_code 0=成功，1=API 失败，2=缺 key/配置；output 含保存路径。',
     parameters: {
       prompt: { type: 'string', required: true, description: '四段式编译出的图生 prompt' },
       ratio: { type: 'string', description: '画布比例（默认读 config image_spec.cover_ratio，兜底 16:9）' },
@@ -162,11 +188,34 @@ export function apply(ctx, config) {
     },
     output: { schema: { type: 'object' }, render: (_a, v) => [{ type: 'text', text: JSON.stringify(v, null, 2) }] },
     async execute(args) {
+      // 图生后端引导：config/workflow.yaml 的 image_backend 段缺失时给可操作指引
+      const backend = readImageBackendConfig()
+      if (!backend.base_url || !backend.model) {
+        return {
+          exit_code: 2,
+          output: '',
+          stderr: '❌ 图生后端未配置：复制仓库 config/workflow.example.yaml 为 config/workflow.yaml，' +
+                  '填写 image_backend.base_url（如 https://dashscope.aliyuncs.com/compatible-mode/v1）与 image_backend.model（如 wanx2.1-t2i-turbo）。',
+        }
+      }
+      // key：DSH 凭据 IMAGE_API_KEY > 环境变量 IMAGE_API_KEY（或 config 里 api_key_env 指定的变量名）
+      const credentials = ctx.get('credentials')
+      const envKeyName = backend.api_key_env || 'IMAGE_API_KEY'
+      const credRes = credentials ? await credentials.resolve(envKeyName) : undefined
+      const apiKey = credRes?.value || process.env[envKeyName] || ''
+      if (!apiKey) {
+        return {
+          exit_code: 2,
+          output: '',
+          stderr: `❌ 缺图生 API key：请编辑 ~/.dsh/.credentials.yaml 添加 ${envKeyName}: <你的key>（或设同名环境变量）。`,
+        }
+      }
       const argv = ['--prompt', args.prompt, '-o', args.output]
       if (args.ratio) argv.push('--ratio', args.ratio)
       if (args.size) argv.push('--size', args.size)
       if (args.n && args.n > 1) argv.push('--n', String(args.n))
-      return wrap(await runScript(ctx, 'generate_image.py', argv, { python: pythonBin }))
+      const r = await runScript(ctx, 'generate_image.py', argv, { env: { [envKeyName]: apiKey }, python: pythonBin })
+      return wrap(r)
     },
   })
 
@@ -199,7 +248,7 @@ export function apply(ctx, config) {
         const appId = await read('WECHAT_APP_ID')
         const appSecret = await read('WECHAT_APP_SECRET')
         if (!appId || !appSecret) {
-          return { exit_code: 2, output: '', stderr: '❌ 未配置公众号凭证：请先在 DSH 设置 → 凭据 → 填写 WECHAT_APP_ID 与 WECHAT_APP_SECRET' }
+          return { exit_code: 2, output: '', stderr: '❌ 未配置公众号凭证：请编辑 ~/.dsh/.credentials.yaml 添加 WECHAT_APP_ID 与 WECHAT_APP_SECRET（详见 dsh-preset/README.md「凭证」）' }
         }
         env.WECHAT_APP_ID = appId
         env.WECHAT_APP_SECRET = appSecret
