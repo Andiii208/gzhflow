@@ -28,9 +28,16 @@ bash dsh-preset/install.sh
 
 ## 凭证（仅发布阶段需要）
 
-推草稿箱需要公众号 AppID/AppSecret，从 DSH 凭据存储读取（不写入本仓库）：
+推草稿箱需要公众号 AppID/AppSecret，存于 DSH 凭据存储（`~/.dsh/.credentials.yaml`，0600，不写入本仓库）：
 
-- DSH 设置 → 凭据 → 新增 `WECHAT_APP_ID`、`WECHAT_APP_SECRET` 两项。
+- 编辑 `~/.dsh/.credentials.yaml`，追加两行（等号右侧填你的真实值）：
+
+```yaml
+WECHAT_APP_ID: <你的AppID>
+WECHAT_APP_SECRET: <你的AppSecret>
+```
+
+保存即生效（凭据存储热发布外部编辑）。注意：DSH 的 Models 设置页只管理模型 API key，自定义凭据需直接编辑该文件。
 
 未配置时 `gzhflow_publish_draft` 返回友好错误提示配置，不会泄露或误用。
 
