@@ -43,3 +43,6 @@ Thumbs.db
 
 # 本地备份
 .local/
+
+# git worktree 开发目录
+.worktrees/
