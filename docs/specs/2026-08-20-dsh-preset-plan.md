@@ -199,7 +199,8 @@ export function apply(ctx, config) {
     },
     output: { schema: { type: 'object' }, render: (_a, v) => [{ type: 'text', text: JSON.stringify(v, null, 2) }] },
     async execute(args) {
-      const argv = ['--prompt', args.prompt, '--ratio', args.ratio ?? '16:9', '-o', args.output]
+      const argv = ['--prompt', args.prompt, '-o', args.output]
+      if (args.ratio) argv.push('--ratio', args.ratio)
       if (args.size) argv.push('--size', args.size)
       if (args.n && args.n > 1) argv.push('--n', String(args.n))
       return wrap(await runScript(ctx, 'generate_image.py', argv, { python: pythonBin }))
