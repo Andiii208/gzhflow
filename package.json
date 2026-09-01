@@ -1,0 +1,39 @@
+{
+  "name": "gzhflow",
+  "version": "0.1.0",
+  "description": "Six-stage WeChat Official Account content-publishing workflow with quality-gate tools and a bundled skill, installable as a DeepSeek Harness (DSH) plugin",
+  "license": "MIT",
+  "type": "module",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Andiii208/gzhflow.git"
+  },
+  "main": "./dsh-preset/tools/gzhflow-tools.mjs",
+  "exports": {
+    ".": "./dsh-preset/tools/gzhflow-tools.mjs",
+    "./tools": "./dsh-preset/tools/gzhflow-tools.mjs",
+    "./skill": "./dsh-preset/tools/gzhflow-skill.mjs",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "cordis.patch.yml",
+    "dsh-preset/tools/",
+    "scripts/",
+    "skills/",
+    "references/",
+    "examples/",
+    "config/*.example.yaml",
+    "README.md",
+    "README.en.md",
+    "LICENSE",
+    "NOTICE.md"
+  ],
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    }
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

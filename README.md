@@ -33,6 +33,26 @@ python scripts/validate_repo.py
 
 完整步骤见 [`docs/quickstart.md`](docs/quickstart.md)。
 
+## 在 DeepSeek Harness 中使用（DSH 插件）
+
+gzhflow 同时打包为 DSH 插件（`package.json` 声明 `dsh.bundle`），可一键安装：
+
+```bash
+# 全局注册 7 个 gzhflow_* 工具（6 个质检门 + 环境自检）并随包携带 gzhflow skill
+dsh plugin --profile web add https://github.com/Andiii208/gzhflow
+```
+
+装完在任意会话说「用 gzhflow 写一篇关于 XX 的公众号文章」，或用 skill 工具加载 `gzhflow`。
+
+想要「公众号主编」人设（会话级 persona + 环境自检引导）可另装 Agent 预设（opt-in）：
+
+```bash
+powershell -ExecutionPolicy Bypass -File dsh-preset/install.ps1   # Windows
+bash dsh-preset/install.sh                                       # macOS / Linux
+```
+
+详见 [`dsh-preset/README.md`](dsh-preset/README.md)。
+
 ## 六阶段流程
 
 | 阶段 | 作用 | 质量门 |

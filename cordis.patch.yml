@@ -1,0 +1,10 @@
+# gzhflow — DeepSeek Harness bundle patch.
+# Installed via `dsh plugin add https://github.com/Andiii208/gzhflow`.
+# Registers the six-stage workflow's quality-gate tools and ships the gzhflow
+# skill as a bundled provider. The "公众号主编" persona remains an opt-in agent
+# preset (see dsh-preset/), not a global injection.
+- insert:
+    - id: gzhflow-tools
+      name: gzhflow/tools
+    - id: gzhflow-skill
+      name: gzhflow/skill

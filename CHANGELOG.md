@@ -2,6 +2,12 @@
 
 本文件记录 gzhflow 的显著变更，遵循 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.1.0/) 与 [语义化版本](https://semver.org/lang/zh-CN/)。
 
+## [Unreleased]
+
+### Added
+
+- DSH 插件打包：根目录 `package.json`（声明 `dsh.bundle`）+ `cordis.patch.yml` + `dsh-preset/tools/gzhflow-skill.mjs`（bundled skill provider），支持 `dsh plugin add https://github.com/Andiii208/gzhflow` 一键安装（全局注册 7 个 `gzhflow_*` 工具并随包携带 `gzhflow` skill）
+
 ## [0.1.0] - 2026-08-22
 
 ### Added（首个版本）

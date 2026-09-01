@@ -33,6 +33,26 @@ See [`docs/quickstart.md`](docs/quickstart.md) for full instructions.
 
 > **Note**: WeChat OA publishing requires a Chinese WeChat Official Account and its AppID/AppSecret. Since 2025-07, personal accounts can no longer use the `freepublish` API to publish directly — `gzhflow` pushes to the **draft box** via `draft/add` (still available), and you tap "publish" in the 公众号助手 app yourself.
 
+## Use in DeepSeek Harness (DSH plugin)
+
+gzhflow is also packaged as a DSH plugin (a `dsh.bundle` manifest in `package.json`):
+
+```bash
+# registers 7 gzhflow_* tools (6 quality gates + env self-check) and ships the gzhflow skill
+dsh plugin --profile web add https://github.com/Andiii208/gzhflow
+```
+
+Then tell any session "Use the gzhflow workflow to write a WeChat OA article about <topic>", or load the `gzhflow` skill.
+
+For the "公众号主编" persona (session-scoped, opt-in), install the agent preset:
+
+```bash
+powershell -ExecutionPolicy Bypass -File dsh-preset/install.ps1   # Windows
+bash dsh-preset/install.sh                                       # macOS / Linux
+```
+
+See [`dsh-preset/README.md`](dsh-preset/README.md).
+
 ## Pipeline
 
 | Stage | Purpose | Gate |

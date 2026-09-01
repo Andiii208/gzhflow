@@ -3,6 +3,10 @@
 把 gzhflow 六阶段公众号工作流适配为 DeepSeek Harness（DSH）的 Agent Preset。
 选择该预设后，会话自动获得：六阶段流程纪律（persona）、6 个质检门 DSH 工具、发布凭证接线。
 
+> **只想装工具 + skill？** 仓库根已提供正式的 DSH 插件打包（`package.json` 声明 `dsh.bundle`）：
+> `dsh plugin --profile web add https://github.com/Andiii208/gzhflow` —— 全局注册 7 个 `gzhflow_*` 工具并随包携带 `gzhflow` skill。
+> 本目录的预设（persona 人设 + 环境自检引导）是**可选**的会话级体验，与插件互补。
+
 ## 安装
 
 ```bash
