@@ -12,6 +12,7 @@ class / id / @media / grid 等 13 项 CSS 红线漏在外面，而 README 和 CI
   3. 标签开闭平衡与交叉嵌套
   4. 文字节点是否被 <span leaf> 包裹（粘贴后不掉样式）
   5. 半角标点与英文引号（代码块内不计）
+  6. 内联渐变背景（公众号深色模式会弹 darkmode-no-gradient 提示）
 
 用法:
     python scripts/validate_gzh_html.py <文件.html>
@@ -68,6 +69,15 @@ HALF_PUNCT = re.compile(r"[一-鿿㐀-䶿][,;!?]")
 ASCII_QUOTE = re.compile(r"[\"']")
 # 代码区特征：等宽字体或 white-space:pre，其内半角符号是正常的
 CODE_STYLE = re.compile(r"monospace|white-space\s*:\s*pre|courier|consolas|sf mono", re.I)
+# 渐变背景：公众号开启"深色模式"时会因渐变弹 darkmode-no-gradient 提示，破坏阅读体验。
+# 只挖掉 CSS 注释与 url() 里的干扰内容——注意不能连引号一起挖，
+# 因为样式就写在 style="…" 的引号里（源仓库那份实现连引号一起挖，导致这条检查形同虚设）。
+CSS_NON_FUNCTION = re.compile(
+    r"/\*.*?\*/|url\(\s*(?:\"(?:\\.|[^\"\\])*\"|'(?:\\.|[^'\\])*'|(?:\\.|[^)])*)\s*\)",
+    re.I | re.S)
+GRADIENT_BACKGROUND = re.compile(
+    r"background(?:-image)?\s*:[^;\"']*?\b(?:repeating-)?(?:linear|radial|conic)-gradient\s*\(",
+    re.I)
 
 
 def check_balance(html):
@@ -198,6 +208,14 @@ def validate(html):
         sample = "；".join("「%s」" % s for s in checker.half_punct[:5])
         warnings.append("%d 处正文疑似半角标点/英文引号，应改中文全角（代码块内不计）。例：%s"
                         % (len(checker.half_punct), sample))
+
+    # 渐变背景（挖掉注释/字符串/url 后再查，避免把示例文字当样式）
+    masked = CSS_NON_FUNCTION.sub(" ", html)
+    grad_hits = list(GRADIENT_BACKGROUND.finditer(masked))
+    if grad_hits:
+        warnings.append(
+            "%d 处内联渐变背景（background:…gradient）：公众号深色模式会弹 darkmode-no-gradient "
+            "提示。建议改主题内纯色/rgba；确需保留时交付说明风险" % len(grad_hits))
 
     return errors, warnings, checker.span_leaf_count
 

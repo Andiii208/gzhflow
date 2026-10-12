@@ -1,0 +1,21 @@
+{
+  "article": "示例文章（用于演示与 CI 冒烟）",
+  "images": [
+    {
+      "id": "cover",
+      "role": "cover",
+      "ratio": "2.35:1",
+      "quality": "high",
+      "output": "generated/cover_raw.png",
+      "prompt": "Cover canvas: warm off-white cold-pressed paper, 45% negative space at top, visible brush strokes + granulating pigment; a quiet desk by a window in soft golden light; no text; avoid neon glow; avoid 3d render; avoid high saturation"
+    },
+    {
+      "id": "inline-1",
+      "role": "inline",
+      "ratio": "16:9",
+      "quality": "medium",
+      "output": "generated/inline_1_raw.png",
+      "prompt": "Inline illustration 16:9: same paper and palette as the cover, a single everyday object on the desk, wet-on-wet blooms + brush strokes, no text; avoid neon glow; avoid 3d render; avoid bokeh"
+    }
+  ]
+}

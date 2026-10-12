@@ -6,7 +6,34 @@
 
 ### Added
 
+- **生图预算层** `scripts/image_batch.py`：manifest 先立清单 → 算账 → 并行出图。
+  清单之外的图不生成；`--plan-only` 只算账（不调接口、不需 API key）；
+  超限 `--auto-trim` 按 inline→金句卡→分享卡 顺序砍、**封面永不砍**；
+  `--prompts-only` 零成本迭代构图；`--receipt` 落预算消耗单。
+  并行 + 指数退避重试 + prompt 去重缓存 + 失败降级（留 `.FAILED.txt`，Run 不阻塞）
+- `examples/image-manifest.example.json`：manifest 示例（兼作 CI 冒烟夹具）
+- **多后端 + 预算配置**：`config` 的 `image_backends`（按名字切后端：
+  agnes 免费试构图 / gpt-image-2 出定稿 / dashscope 等）与 `image_budget`
+  （张数上限、金额上限、并行数、重试数、质量分轨）。旧版 `image_backend` 单后端写法仍兼容
+- `generate_image.py` 新增 `--quality`（质量档）、`--backend`（选后端）、
+  `--refs`（参考图，走 `/images/edits`）；声明 `strict_sizes` 的后端会自动把尺寸
+  对齐到 16 的倍数并校验宽高比 <3:1、像素区间
+- `references/long-image-layout.md` 补「长图节奏规范」：hook 占顶 15% → 章节图文交替
+  → 结尾 CTA；矢量/位图分工（同时是成本策略）；不编造版面事实；空底=章节没画完的判定。
+  来源 `zuoge` 的 `long_scroll`（Apache-2.0）
 - DSH 插件打包：根目录 `package.json`（声明 `dsh.bundle`）+ `cordis.patch.yml` + `dsh-preset/tools/gzhflow-skill.mjs`（bundled skill provider），支持 `dsh plugin add https://github.com/Andiii208/gzhflow` 一键安装（全局注册 7 个 `gzhflow_*` 工具并随包携带 `gzhflow` skill）
+
+### Changed
+
+- `scripts/generate_image.py` 配置解析换成支持多层嵌套的极简 YAML 解析器；
+  顺带修掉两个潜在坑：行尾 `# 注释` 会被当成值的一部分（`model` 就会带上引号和注释）、
+  原解析器只支持一层嵌套
+- `scripts/validate_gzh_html.py` 新增**渐变背景检查**（`background:…gradient()` 会让
+  公众号深色模式弹 `darkmode-no-gradient` 提示）。源实现（gzh-design-skill）那条检查
+  因先把引号串整体挖掉而形同虚设——样式就写在 `style="…"` 的引号里，本版改为只挖注释与 `url()`
+- `prompts/04-images.md` 与 `skills/gzhflow/SKILL.md` ④ 阶段改为「立清单 → 预算门 → 出图」，
+  质检门从「PASS 才生成」扩展为「PASS → 过预算」两道
+- CI 补 `image_batch.py` 语法检查 + 两条预算层冒烟用例
 
 ## [0.2.0] - 2026-10-12
 

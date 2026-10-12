@@ -46,7 +46,15 @@ jobs:
           python -m py_compile skills/gzh-design/scripts/validate_gzh_html.py
           python -m py_compile scripts/crop_image.py
           python -m py_compile scripts/generate_image.py
+          python -m py_compile scripts/image_batch.py
           python -m py_compile scripts/publish_draft.py
+      - name: 生图预算层冒烟（plan-only 不调接口、不需 key）
+        run: |
+          cp config/workflow.example.yaml config/workflow.yaml
+          python scripts/image_batch.py --manifest examples/image-manifest.example.json --plan-only > /dev/null
+      - name: 生图预算层冒烟（超张数上限必须报错，退出码 3）
+        run: |
+          ! python scripts/image_batch.py --manifest examples/image-manifest.example.json --plan-only --max-images 1 > /dev/null
       - name: 去 AI 味机器门冒烟（干净文本通过）
         run: |
           python scripts/ai_flavor_score.py --text "这是一个普通的句子，没有破折号也没有黑话。" > /dev/null

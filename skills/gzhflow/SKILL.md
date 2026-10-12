@@ -27,7 +27,7 @@ tags: [wechat, 公众号, content-publishing, workflow, cross-agent]
 | ① 素材先行 | `prompts/01-material.md` | 意图三问（写给谁/什么感觉/为什么今天） | 素材锚点清单 |
 | ② 写作 | `prompts/02-writing.md` | `scripts/ai_flavor_score.py` + 自检四问 | `draft.md`（frontmatter + 正文） |
 | ③ 去AI味 | `prompts/03-deai.md` | `scripts/ai_flavor_score.py` 复检（FAIL 清零） | 定稿 `draft.md` |
-| ④ 配图（可选） | `prompts/04-images.md` | `scripts/check_image_prompt.py`（PASS 才生成） | `cover.jpg` + 内文图 |
+| ④ 配图（可选） | `prompts/04-images.md` | `scripts/check_image_prompt.py`（PASS 才生成）→ `scripts/image_batch.py --plan-only`（过预算） | `cover.jpg` + 内文图 + 预算单 |
 | ⑤ 排版 | `prompts/05-layout.md` | `scripts/validate_gzh_html.py`（0 ERROR） | `{标题}_排版_{主题}.html` |
 | ⑥ 发布 | `prompts/06-publish.md` | `scripts/publish_draft.py --dry-run` 先验 | 草稿箱草稿 |
 | ⑦ 复盘 | `prompts/07-review.md` | 每 5 篇回写一次 | `assets/log.md` + 回写四库 |
@@ -107,7 +107,13 @@ tags: [wechat, 公众号, content-publishing, workflow, cross-agent]
 3. **设计推理**：读 `references/design-reasoning.md`，按 6 项模板作答（≤60 秒）
 4. **四段式编译**：画布纸感/主体隐喻/文字色彩/氛围规避
 5. **质检门**：`echo "prompt" | python scripts/check_image_prompt.py` → PASS 才生成
-6. **生成**：调 OpenAI 兼容图生接口（config 配置）；封面双尺寸 + 内文 16:9
+6. **预算门 + 生成**：先立 manifest——**清单之外的图一律不生成**。走预算层：
+   - `python scripts/image_batch.py --manifest generated/manifest.json --plan-only`（不调接口、不需 key，先看账）
+   - 超预算 → `--auto-trim`（按 inline→金句卡→分享卡 顺序砍，**封面永不砍**）或调 `image_budget` 上限
+   - 正式出图 `--receipt` 落预算单；迭代构图用 `--prompts-only`（零成本）
+   - 后端按名字切：`image_backends.default`（agnes 免费试构图 / gpt-image-2 出定稿）
+   - 质量分轨：封面 high、内文 medium、试稿 low——档位间差 35 倍，别乱用 high
+   - 失败不阻塞：失败的图留 `.FAILED.txt`（含 prompt），Run 继续走完并在报告标注
 7. **裁剪**：`python scripts/crop_image.py`（封面 2.35:1 / 内文 16:9 / jpg）
 8. **视觉复核 + 用户确认**：先 1 张试水再批量（风格不确定时）
 

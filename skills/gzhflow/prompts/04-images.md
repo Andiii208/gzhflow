@@ -1,7 +1,8 @@
 # 阶段④ 配图（Illustration，可选）
 
 > 目标：为文章配封面（双尺寸）+ 内文插图。**先定图源，再定画风。**
-> 前提：`config/workflow.yaml` 的 `stages.illustration: true` 且图生后端已配置。
+> 前提：`config/workflow.yaml` 的 `stages.illustration: true`、图生后端已配置（`image_backends`）、
+> 预算上限已设（`image_budget`）。**只算账 / 只出 prompt 不需要 API key。**
 
 ## 流程
 
@@ -46,19 +47,45 @@ echo "prompt内容" | python scripts/check_image_prompt.py
 - FAIL → 改 prompt 直到 PASS；WARN → 尽量消除
 - **PASS 才允许调图生后端**
 
-### Step 5：生成
+### Step 5：立清单 → 算账 → 出图（预算层）
 
-- 封面：16:9 生成（附加安全区约束句）+ 1:1 分享图两版
-- 内文配图：16:9 横构图，prompt 显式锚定横向元素
-- 图生后端：OpenAI 兼容接口，用 `scripts/generate_image.py` 调用（config 的 base_url/model/api_key_env）：
+**清单之外不生成**——这是"不乱生图"的唯一执行机制。把本轮要出的图列成 manifest（JSON，写入 `generated/manifest.json`）：
 
-```bash
-python scripts/generate_image.py --prompt "<四段式 prompt>" --ratio 16:9 -o cover_raw.png    # 封面原始图（Step 6 再裁 2.35:1）
-python scripts/generate_image.py --prompt "<四段式 prompt>" --ratio 1:1 -o share_raw.png     # 1:1 分享图
-python scripts/generate_image.py --prompt "<四段式 prompt>" --ratio 16:9 -o inline_raw.png   # 内文配图
+```json
+{
+  "article": "文章标题",
+  "images": [
+    {"id": "cover", "role": "cover", "ratio": "2.35:1", "quality": "high",
+     "output": "generated/cover_raw.png", "prompt": "四段式 prompt"},
+    {"id": "inline-1", "role": "inline", "ratio": "16:9", "quality": "medium",
+     "output": "generated/inline_1_raw.png", "prompt": "四段式 prompt"},
+    {"id": "share", "role": "share", "ratio": "1:1", "quality": "medium",
+     "output": "generated/share_raw.png", "prompt": "四段式 prompt"}
+  ]
+}
 ```
 
-  缺 API key / 缺配置时脚本退出码 2 并报错；生成成功打印保存路径（exit 0）。
+`role` 四选一：`cover`（封面，永不砍）/ `share`（1:1 分享卡）/ `quote-card`（金句卡）/ `inline`（内文图）。
+`quality` 省略时按 role 走 `image_budget` 默认档；`refs` 可选，给 GPT-image-2 传风格锚图。
+
+```bash
+# 1) 先算账（不调接口、不需要 API key）：张数/尺寸/单价/总额 vs 上限
+python scripts/image_batch.py --manifest generated/manifest.json --plan-only
+
+# 2) 超预算 → 调 image_budget 上限，或自动砍次要图（顺序 inline→金句卡→分享卡，封面永不砍）
+python scripts/image_batch.py --manifest generated/manifest.json --auto-trim
+
+# 3) 正式出图（并行 + 指数退避重试 + 失败降级不阻塞）
+python scripts/image_batch.py --manifest generated/manifest.json --receipt generated/预算单.md
+
+# 迭代构图时只落 prompt，零成本零等待
+python scripts/image_batch.py --manifest generated/manifest.json --prompts-only
+```
+
+- **成本纪律**：封面走 high、内文 medium、试稿/金句卡 low（档位间差 35 倍，别乱用 high）
+- **后端切换**：只改 `image_backends.default`——agnes（免费）试构图、gpt-image-2 出定稿
+- **失败降级**：失败的图留 `.FAILED.txt`（含 prompt），Run 继续走完，报告标注
+- 单张调试仍可直接用 `scripts/generate_image.py --prompt … --quality high --backend gpt-image-2`（加 `--refs a.png` 走参考图）
 
 ### Step 6：裁剪
 

@@ -23,12 +23,44 @@ output_dir: generated
 author: "你的公众号名"        # 改为你自己的公众号名
 signature: "—— {author}"      # 签名格式，{author} 会被替换
 
-# ── 图生后端（阶段④配图用，OpenAI 兼容接口）──
-# 支持任何 OpenAI 兼容 /images/generations 端点：
-#   - 阿里云百炼 DashScope：https://dashscope.aliyuncs.com/compatible-mode/v1
-#   - MiniMax：https://api.minimax.chat/v1
-#   - OpenAI：https://api.openai.com/v1
-#   - 豆包/火山方舟、智谱、月之暗面等（均为 OpenAI 兼容协议）
+# ── 图生后端（多后端：按名字切换，默认用 default 指定的那个）──
+# 每个后端都是 OpenAI 兼容接口；想换服务商只改这里，流程不动。
+# 额外字段：
+#   price            每张单价（美元），0 = 免费；仅用于预算预估
+#   strict_sizes     true = 尺寸须两条边对齐 16 的倍数、宽高比 <3:1、像素 0.66M–8.3M（gpt-image-2）
+#   supports_quality true = 支持 low/medium/high 质量档（影响速度与成本）
+image_backends:
+  default: dashscope
+  dashscope:
+    base_url: "https://dashscope.aliyuncs.com/compatible-mode/v1"
+    model: "wanx2.1-t2i-turbo"
+    api_key_env: "IMAGE_API_KEY"
+  agnes:                                  # 免费后端，适合构图试错
+    base_url: "https://apihub.agnes-ai.com/v1"
+    model: "agnes-image-2.1-flash"
+    api_key_env: "AGNES_API_KEY"
+    price: 0
+  gpt-image-2:                            # 付费主力：质量档 + 参考图（锚图）
+    base_url: "https://api.openai.com/v1"
+    model: "gpt-image-2"
+    api_key_env: "OPENAI_API_KEY"
+    strict_sizes: true
+    supports_quality: true
+    # price_table: {low: 0.006, medium: 0.053, high: 0.211}   # 想覆盖内置价目表时打开
+
+# ── 生图预算（阶段④用 scripts/image_batch.py 执行）──
+# 管的是生成纪律：清单之外不生成、超限先砍次要图。想加金句卡等品类，加进 manifest 即可。
+image_budget:
+  max_images: 4            # 每次 Run 的张数上限（0 = 不限）
+  max_cost_usd: 0.30       # 每次 Run 的金额上限（美元，0 = 不限）
+  parallel: 4              # 并行生成路数
+  retry: 1                 # 每张失败重试次数（指数退避）
+  quality_cover: high      # 封面档（钱花在这）
+  quality_inline: medium   # 内文档
+  quality_draft: low       # 试稿/金句卡档（选构图用）
+
+# ── 图生后端（旧版单后端写法，保留兼容）──
+# 配置了上面的 image_backends 时本段被忽略；只配这一段也能跑（等价于只有一个默认后端）。
 image_backend:
   base_url: "https://dashscope.aliyuncs.com/compatible-mode/v1"  # 改为你的服务商
   model: "wanx2.1-t2i-turbo"      # 模型名按服务商文档填
