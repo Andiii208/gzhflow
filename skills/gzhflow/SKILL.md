@@ -15,6 +15,7 @@ tags: [wechat, 公众号, content-publishing, workflow, cross-agent]
 1. **读 `state.md`**（仓库根目录）：当前这篇写到哪了、待办、会话交接备注。
    用户在多个 Agent 之间切换，没有这个文件，上一个会话的上下文就断了——
    你会把已经问过的问题再问一遍。
+   **这个文件被 gitignore（含个人进度），clone 下来没有是正常的**，按 SKILL.md 从阶段① 起即可。
 2. **配置**：确认 `config/workflow.yaml`、`config/styles.yaml`、`config/themes.yaml`、`config/publish.yaml` 存在（不存在则从 `*.example.yaml` 复制，并让用户确认配置）。
 3. **产物目录**：所有产物（草稿 md、HTML、图片）写入 `config/workflow.yaml` 的 `output_dir`（默认 `generated/`，已 gitignore）。
 4. **审核模式**：默认 `strict`——每个阶段输出都给用户审阅；用户明确说「直接做/不用审阅」才切 `auto` 全自动。
@@ -43,6 +44,10 @@ tags: [wechat, 公众号, content-publishing, workflow, cross-agent]
 | 范文锚 | `assets/voice-samples/` | 慢变（月） | 阶段② 动笔前读 1~3 段 |
 | 风格档案 | `assets/voice.md` | 慢变（季度） | 阶段② 前读；阶段⑦ 回写 |
 | 教训库 | `assets/lessons.md` | 事件驱动 | 被否 2-3 次时查；阶段⑦ 回写 |
+
+**这四个库里，`inbox.md`、`voice-samples/` 里的范文段落、发文日志都被 gitignore**——
+开源的是流程和方法论，不是你写过的内容。clone 下来缺这些文件是正常的，
+首次使用照 `assets/voice-samples/README.md` 自建即可（那份 README 是公开的）。
 
 `state.md` 是跨会话状态机，见 §0。
 

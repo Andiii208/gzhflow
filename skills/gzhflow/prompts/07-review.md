@@ -5,7 +5,8 @@
 
 ## 什么时候跑
 
-- **每篇发完**：往 `assets/log.md` 追加一行，一分钟
+- **每篇发完**：往 `assets/log.md` 追加一行，一分钟（文件被 gitignore，
+  首次使用时照本文件顶部的格式自建一个）
 - **每 5 篇**：做一次回写，把 log 里的规律提炼进 `assets/voice.md`、
   `assets/lessons.md`，按需扩充 `assets/voice-samples/`
 

@@ -29,6 +29,9 @@
 
 `state.md` 是跨会话状态机——用户在多个 Agent 之间切换，没有它，上一个会话的上下文就断了。
 
+**注意**：`state.md`、`assets/inbox.md`、`assets/log.md`、`assets/voice-samples/` 里的范文段落
+都被 gitignore——开源的是流程和方法论，不是作者写过的内容。clone 下来缺这些是正常的。
+
 ## 如何运行（任何 Agent）
 
 1. **先读 `state.md`**：当前这篇写到哪了、待办、交接备注。**每次会话第一件事。**

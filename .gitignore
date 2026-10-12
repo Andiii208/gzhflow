@@ -46,3 +46,13 @@ Thumbs.db
 
 # git worktree 开发目录
 .worktrees/
+
+# 个人数据：本地留着用，不进公开仓库
+# 这个仓库开源的是流程和方法论，不是你写过的内容。
+# 已随 v0.2.0 发出去过一轮，git 历史里仍能翻到；真要彻底清除得重写历史。
+state.md
+assets/inbox.md
+assets/log.md
+references/seed-inbox-*.md
+assets/voice-samples/*
+!assets/voice-samples/README.md
