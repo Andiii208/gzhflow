@@ -47,6 +47,7 @@ jobs:
           python -m py_compile scripts/crop_image.py
           python -m py_compile scripts/generate_image.py
           python -m py_compile scripts/image_batch.py
+          python -m py_compile scripts/learned_edits.py
           python -m py_compile scripts/publish_draft.py
       - name: 生图预算层冒烟（plan-only 不调接口、不需 key）
         run: |
@@ -55,6 +56,16 @@ jobs:
       - name: 生图预算层冒烟（超张数上限必须报错，退出码 3）
         run: |
           ! python scripts/image_batch.py --manifest examples/image-manifest.example.json --plan-only --max-images 1 > /dev/null
+      - name: 生图预算层冒烟（统一色板要注入 prompt）
+        run: |
+          rm -rf generated
+          python scripts/image_batch.py --manifest examples/image-manifest.example.json --prompts-only > /dev/null
+          grep -q "统一色板" generated/cover_raw.png.prompt.txt
+          grep -q "#3A4A5A" generated/cover_raw.png.prompt.txt
+      - name: 生图预算层冒烟（非法色板必须报错，退出码 2）
+        run: |
+          printf '{"palette":["红色"],"images":[{"role":"cover","prompt":"p","output":"/tmp/x.png"}]}' > /tmp/badpal.json
+          ! python scripts/image_batch.py --manifest /tmp/badpal.json --plan-only > /dev/null
       - name: 去 AI 味机器门冒烟（干净文本通过）
         run: |
           python scripts/ai_flavor_score.py --text "这是一个普通的句子，没有破折号也没有黑话。" > /dev/null
@@ -90,3 +101,13 @@ jobs:
             python scripts/md2wechat.py skills/gzh-design/assets/sample-article.md --theme "$n" --enhance --author "测试作者" -o "/tmp/theme-$n.html"
             python scripts/validate_gzh_html.py "/tmp/theme-$n.html"
           done
+      - name: 手改学习冒烟（有改动 → 记录并退出 0）
+        run: |
+          printf 'a\nb\nc\n' > /tmp/before.md
+          printf 'a\nc\n' > /tmp/after.md
+          python scripts/learned_edits.py --before /tmp/before.md --after /tmp/after.md --kind deai --append /tmp/le.md
+          grep -q "改动量" /tmp/le.md
+      - name: 手改学习冒烟（两版一致 → 退出 4，不写盘）
+        run: |
+          cp /tmp/before.md /tmp/same.md
+          ! python scripts/learned_edits.py --before /tmp/before.md --after /tmp/same.md

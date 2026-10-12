@@ -30,6 +30,18 @@
   → 结尾 CTA；矢量/位图分工（同时是成本策略）；不编造版面事实；空底=章节没画完的判定。
   来源 `zuoge` 的 `long_scroll`（Apache-2.0）
 - DSH 插件打包：根目录 `package.json`（声明 `dsh.bundle`）+ `cordis.patch.yml` + `dsh-preset/tools/gzhflow-skill.mjs`（bundled skill provider），支持 `dsh plugin add https://github.com/Andiii208/gzhflow` 一键安装（全局注册 7 个 `gzhflow_*` 工具并随包携带 `gzhflow` skill）
+- **B2 文章实体 → 统一色板**：manifest 顶层 `palette`（per-image 可覆盖），`image_batch.py`
+  把它接到每张图 prompt 末尾（晕染辅色，不覆盖纸底）；非法色值（非 #RRGGBB）直接报错退出 2。
+  规则与三步法见 `references/image-style-routing.md` 新增节「文章实体 → 统一色板」
+- **B1 视觉锚**：引擎 yaml 新增 `anchor_images` 字段；`examples/image-engines/anchors/` 目录
+  （README 公开、锚图 gitignore）。`image_batch.py` 新增 `--engine`（读引擎自带锚）与
+  `--anchors`（目录/逗号清单），manifest 顶层 `anchors` 亦可——参考图并进每张图 refs（走 `/images/edits`）
+- **B3 封面分轨**：`references/cover-design.md`——封面是两件套（2.35:1 头图 + 1:1 分享卡，
+  不可互裁）、五种构图类型、安全区、封面 ≠ 正文图（用户 2026-08-07 纠正）、封面学习环；
+  `assets/cover-preferences.md` 骨架（认可/被否各记一行，攒够 2 张进 `anchors/`）
+- **C1 学习我的修改**：`scripts/learned_edits.py`（difflib 比对机器稿与手改稿，
+  `--kind` 七类、`--append` 结构化落盘；只记录不回写）+ `assets/learned-edits.md` 骨架；
+  接线 `prompts/07-review.md` 与 SKILL.md ⑦
 
 ### Changed
 
@@ -53,6 +65,12 @@
 - `SKILL.md` ⑤ 阶段改写：自动路径（`--enhance`）为主、手工装配为补充；
   `theme-index.md` 与 `examples/themes/README.md` 写明「两套主题机制、色值同源」的约定
 - CI 补 `image_batch.py` 语法检查 + 四条冒烟（预算层 ×2、`style` 截断、`--enhance` 产物合规）
+- `prompts/04-images.md` 加 Step 4.5（实体色板 + 视觉锚）、Step 1 封面分流、裁剪补 1:1；
+  防坑补三条（各配各色 / 头图裁分享卡 / 脏锚）
+- `references/INDEX.md` 登记 `cover-design`，⓪ 启动表补 `learned-edits` / `cover-preferences`；
+  references 计数 38 → 39
+- `SKILL.md` ④ ⑦ 与库表接线（色板/锚图/封面两件套/手改学习），修引擎数量笔误（五套 → 六套）
+- CI 补 `learned_edits.py` 语法检查 + 三条冒烟（色板注入、非法色板报错、手改记录/无改动退出 4）
 
 ## [0.2.0] - 2026-10-12
 

@@ -5,10 +5,30 @@
 
 ## 什么时候跑
 
+- **每次你手改完**：用 `scripts/learned_edits.py` 比一比，把改动记进 `assets/learned-edits.md`
+  （改完就记，隔天就忘了当时为什么改）
 - **每篇发完**：往 `assets/log.md` 追加一行，一分钟（文件被 gitignore，
   首次使用时照本文件顶部的格式自建一个）
-- **每 5 篇**：做一次回写，把 log 里的规律提炼进 `assets/voice.md`、
+- **每 5 篇**：做一次回写，把 log 与 learned-edits 里的规律提炼进 `assets/voice.md`、
   `assets/lessons.md`，按需扩充 `assets/voice-samples/`
+
+## 手改怎么进库（learned-edits）
+
+用户在机器稿上的每一次手改，都是「机器给的」与「你想要的」之间的差——最贵的信号。
+入口是一个脚本，记完不自动回写，**回写要人判断**：
+
+```bash
+python scripts/learned_edits.py \
+  --before generated/draft_ai.md --after generated/draft_user.md \
+  --kind deai --note "删掉开头天气铺垫，直接从事件进" \
+  --append assets/learned-edits.md
+```
+
+`--kind` 六选一：`deai` / `structure` / `voice` / `layout` / `image` / `title`（另有 `other`）。
+蒸馏去向见 `assets/learned-edits.md` 顶部的表：语气类回 `voice.md`，坑类回 `lessons.md`，
+配图类回 `references/cover-design.md` 与 `image-style-routing.md`。
+
+**纪律**：不满 2 条同类不改库；同一条被改回来两次 → 说明规则打架，先在 `lessons.md` 记冲突。
 
 ## log.md 一行格式
 
@@ -29,6 +49,8 @@
 | `assets/lessons.md` | 「新增规矩」加一条坑 | 被否 2-3 次才加，一次别加 |
 | `assets/voice-samples/` | 补充新范文段 | 某篇你特别满意，切 300 字段落加进去 |
 | `assets/inbox.md` | 把用过的素材挪到「已用」区；出现两次以上的挪到「沉淀」 | 每篇顺手做 |
+| `assets/cover-preferences.md` | 认可/否掉的封面各记一行，攒够 2 张认可 → 进 `anchors/` | 每篇发完 |
+| `assets/learned-edits.md` | 手改记录（脚本自动追加），蒸馏时据此改上表各库 | 每次手改 |
 
 ## 回写的纪律
 

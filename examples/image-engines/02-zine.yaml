@@ -22,3 +22,8 @@ typography:
 layout:
   hard: ["全出血场景", "商业标题层级", "产品广告", "logo/CTA", "光泽 mockup", "干净 UI 白", "电影打光", "3D", "霓虹", "可爱卡通", "时尚杂志戏剧感", "密集剪贴簿", "太多颜色", "长段干净文字", "任何高饱和色块"]
   soft: ["high contrast", "glossy", "sharp shadows", "clean vector"]
+
+# ── 视觉锚（可选）──
+# 本引擎的风格锚图，路径相对 examples/image-engines/anchors/。
+# 默认空：没有锚图就走纯文字 prompt；挑选与登记方法见该目录 README。
+anchor_images: []

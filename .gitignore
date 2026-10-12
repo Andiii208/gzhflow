@@ -58,3 +58,7 @@ assets/voice-samples/*
 !assets/voice-samples/README.md
 assets/baseline/
 assets/baseline.md
+
+# 配图风格锚：用户自己的历史偏好图，属个人内容
+examples/image-engines/anchors/*
+!examples/image-engines/anchors/README.md

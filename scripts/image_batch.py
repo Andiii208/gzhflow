@@ -8,6 +8,8 @@
 manifest（JSON，阶段④产出）：
     {
       "article": "标题",
+      "palette": ["#3A4A5A", "#C4A484", "#7A6A58"],   # 可选：文章实体统一色板
+      "anchors": ["examples/image-engines/anchors/cover-like-01.png"],  # 可选：风格锚图
       "images": [
         {"id": "cover",  "role": "cover", "ratio": "2.35:1", "quality": "high",
          "output": "generated/cover_raw.png", "prompt": "…"},
@@ -17,6 +19,8 @@ manifest（JSON，阶段④产出）：
     }
 role 取值：cover（封面，永不砍）/ share（1:1 分享卡）/ quote-card（金句卡）/ inline（内文图）。
 quality 省略时按 role 取 image_budget 的默认档。
+`palette` 会被接到每张图 prompt 末尾（晕染辅色，不动纸底）；per-image 可覆盖顶层。
+`anchors` / `--anchors` / `--engine` 的参考图会并进每张图的 refs（走 /images/edits）。
 
 预算配置（config/workflow.yaml）：
     image_budget:
@@ -34,12 +38,14 @@ quality 省略时按 role 取 image_budget 的默认档。
     python scripts/image_batch.py --manifest gen/manifest.json --auto-trim        # 超限自动砍次要图
     python scripts/image_batch.py --manifest gen/manifest.json --prompts-only     # 只落 prompt 文件
     python scripts/image_batch.py --manifest gen/manifest.json --backend gpt-image-2 --receipt gen/预算单.md
+    python scripts/image_batch.py --manifest gen/manifest.json --engine watercolor --anchors examples/image-engines/anchors
 
 退出码: 0 = 完成（含部分失败，见报告）, 1 = 全部失败, 2 = 配置/manifest 错误, 3 = 超预算且未开 auto-trim
 """
 import argparse
 import json
 import random
+import re
 import shutil
 import sys
 import time
@@ -47,16 +53,109 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from generate_image import (ConfigError, generate_one, load_workflow_config,  # noqa: E402
-                            resolve_backend, size_for, unit_price)
+from generate_image import (ROOT, ConfigError, generate_one,  # noqa: E402
+                            load_workflow_config, resolve_backend, size_for,
+                            unit_price)
 
 # 超限时的裁剪顺序：数字越小越先被砍。cover 最后，且开 auto-trim 也不会砍它。
 CUT_RANK = {"inline": 0, "quote-card": 1, "share": 2, "cover": 3}
+
+# 统一色板必须是 6 位十六进制——脏值直接进 prompt 会污染每一张图，宁可早点报错。
+HEX = re.compile(r"^#[0-9A-Fa-f]{6}$")
+ANCHOR_EXT = {".png", ".jpg", ".jpeg", ".webp"}
 
 
 def fail(msg, code=2):
     print("❌ %s" % msg, file=sys.stderr)
     sys.exit(code)
+
+
+def _norm_palette(val, where):
+    """把 palette 字段规整成 ["#RRGGBB", …]；非法色值直接报配置错误。"""
+    if not val:
+        return []
+    if isinstance(val, str):
+        val = [p for p in re.split(r"[,\s]+", val) if p]
+    out = []
+    for p in val:
+        p = str(p).strip()
+        if not p:
+            continue
+        if not HEX.match(p):
+            fail("%s 里的色值不是 #RRGGBB：%r" % (where, p))
+        out.append(p.upper())
+    return out
+
+
+def _inject_palette(prompt, palette):
+    """把文章实体色板接到 prompt 尾部——只作晕染辅色，不动纸底与纸感词。"""
+    if not palette:
+        return prompt
+    line = "统一色板：%s（仅作晕染辅色，不覆盖纸底与纸感）" % " ".join(palette)
+    if line in prompt:
+        return prompt
+    return prompt.rstrip() + "\n" + line
+
+
+def _dedup(seq):
+    seen, out = set(), []
+    for x in seq:
+        if x and x not in seen:
+            seen.add(x)
+            out.append(x)
+    return out
+
+
+def _read_engine_anchors(name_or_path):
+    """从 examples/image-engines/*.yaml 的 `anchor_images:` 块列表读风格锚图路径。
+
+    只认这一个字段（通用 YAML 解析器不支持列表，不为此扩大解析面）。
+    传引擎名（匹配文件主干或内部 name）或 yaml 路径均可。
+    """
+    p = Path(name_or_path)
+    if not p.is_file():
+        eng_dir = ROOT / "examples" / "image-engines"
+        hit = None
+        for cand in sorted(eng_dir.glob("*.yaml")):
+            if cand.stem == name_or_path or cand.stem.split("-", 1)[-1] == name_or_path:
+                hit = cand
+                break
+            text = cand.read_text(encoding="utf-8", errors="replace")
+            if re.search(r'^name:\s*["\']?%s["\']?\s*$' % re.escape(name_or_path), text, re.M):
+                hit = cand
+                break
+        if hit is None:
+            fail("找不到配图引擎 %r（examples/image-engines/*.yaml）" % name_or_path)
+        p = hit
+    if not p.exists():
+        fail("引擎文件不存在：%s" % p)
+    anchors, in_block = [], False
+    for line in p.read_text(encoding="utf-8", errors="replace").splitlines():
+        if re.match(r"^anchor_images\s*:", line):
+            in_block = True
+            continue
+        if in_block:
+            m = re.match(r"^\s+-\s*(.+?)\s*$", line)
+            if m:
+                anchors.append(m.group(1).strip("\"'"))
+            elif line.strip():
+                break
+    base = p.parent
+    return [str((base / a) if not Path(a).is_absolute() else Path(a)) for a in anchors]
+
+
+def _expand_anchors(spec):
+    """把 --anchors 的参数展开成路径列表：目录则取其下所有图片，否则按逗号分。"""
+    if not spec:
+        return []
+    out = []
+    for part in [s for s in re.split(r"[,\n]", spec) if s.strip()]:
+        path = Path(part.strip())
+        if path.is_dir():
+            out += [str(f) for f in sorted(path.iterdir()) if f.suffix.lower() in ANCHOR_EXT]
+        else:
+            out.append(str(path))
+    return out
 
 
 def role_quality(role, budget, manifest_quality=None):
@@ -69,9 +168,19 @@ def role_quality(role, budget, manifest_quality=None):
     return str(by_role.get(role) or budget.get("quality_default") or "medium").lower()
 
 
-def build_plan(manifest, backend, budget, cli_max_images=None, cli_max_cost=None):
-    """把 manifest 折算成可执行的计划行：尺寸、单价、成本。"""
+def build_plan(manifest, backend, budget, cli_max_images=None, cli_max_cost=None,
+               anchors=None):
+    """把 manifest 折算成可执行的计划行：尺寸、单价、成本。
+
+    额外接线（2026-10-12）：
+    - manifest 顶层 `palette` → 注入每张图的 prompt 末尾（文章实体统一色板）
+    - per-image `palette` 覆盖顶层
+    - manifest 顶层 `anchors` + CLI `--anchors` → 并进每张图的 refs（风格锚）
+    """
     rows = []
+    m_palette = _norm_palette(manifest.get("palette"), "manifest.palette")
+    extra_anchors = _dedup([str(a) for a in (manifest.get("anchors") or [])]
+                           + [str(a) for a in (anchors or [])])
     for i, item in enumerate(manifest.get("images") or []):
         if not isinstance(item, dict) or not item.get("prompt") or not item.get("output"):
             fail("manifest.images[%d] 缺 prompt 或 output" % i)
@@ -82,6 +191,7 @@ def build_plan(manifest, backend, budget, cli_max_images=None, cli_max_cost=None
             size = size_for(ratio or "16:9", backend, item.get("size"))
         except ConfigError as e:
             fail("images[%d] %s" % (i, e))
+        palette = _norm_palette(item.get("palette") or m_palette, "images[%d].palette" % i)
         unit = unit_price(backend, quality)
         rows.append({
             "id": item.get("id") or ("img-%d" % (i + 1)),
@@ -91,8 +201,9 @@ def build_plan(manifest, backend, budget, cli_max_images=None, cli_max_cost=None
             "size": size,
             "unit": unit,
             "output": Path(item["output"]),
-            "prompt": item["prompt"],
-            "refs": item.get("refs") or [],
+            "prompt": _inject_palette(item["prompt"], palette),
+            "palette": palette,
+            "refs": _dedup([*(item.get("refs") or []), *extra_anchors]),
             "status": "待生成",
         })
     if not rows:
@@ -115,6 +226,12 @@ def print_table(rows, max_images, max_cost):
     n, cost = totals(rows)
     print("   ── 合计：%d 张，预估 $%.4f（上限：%s 张 / $%.4f）"
           % (n, cost, max_images or "不限", max_cost))
+    palettes = _dedup([" ".join(r["palette"]) for r in rows if r.get("palette")])
+    if palettes:
+        print("   🎨 统一色板：%s" % " | ".join(palettes))
+    n_anchor = len(rows[0].get("refs") or []) if rows else 0
+    if n_anchor:
+        print("   🖼️  风格锚：每张带 %d 张参考图（走 /images/edits）" % n_anchor)
     return n, cost
 
 
@@ -177,6 +294,11 @@ def write_receipt(path, rows, dropped, backend, max_images, max_cost, mode):
              "- 模式：%s" % mode,
              "- 上限：%s 张 / $%.4f" % (max_images or "不限", max_cost),
              "- 实际：%d 张 / 预估 $%.4f" % (n, cost), ""]
+    palettes = _dedup([" ".join(r["palette"]) for r in rows if r.get("palette")])
+    if palettes:
+        lines += ["- 统一色板：%s" % " | ".join("`%s`" % p for p in palettes), ""]
+    if rows and rows[0].get("refs"):
+        lines += ["- 风格锚：每张带 %d 张参考图" % len(rows[0]["refs"]), ""]
     if dropped:
         lines += ["## 预算裁剪（超限自动砍）", ""] + \
                  ["- %s（%s）" % (r["id"], r["role"]) for r in dropped] + [""]
@@ -196,6 +318,8 @@ def main():
     ap.add_argument("--prompts-only", action="store_true", help="只落 prompt 文件，不调接口")
     ap.add_argument("--auto-trim", action="store_true", help="超预算时自动砍次要图（封面不砍）")
     ap.add_argument("--backend", help="image_backends 里的后端名")
+    ap.add_argument("--anchors", help="风格锚图：目录（取其下图片）或逗号分隔路径；并进每张图的 refs")
+    ap.add_argument("--engine", help="配图引擎名/路径：读其 anchor_images 作为风格锚（与 --anchors 叠加）")
     ap.add_argument("--max-images", type=int, help="覆盖张数上限")
     ap.add_argument("--max-cost", type=float, help="覆盖金额上限（美元）")
     ap.add_argument("--receipt", help="预算消耗单输出路径（默认不写，仅打印）")
@@ -218,8 +342,11 @@ def main():
         fail(str(e))
 
     budget = cfg.get("image_budget") or {}
+    anchors = _expand_anchors(args.anchors)
+    if args.engine:                       # 引擎自带风格锚（examples/image-engines/*.yaml）
+        anchors += _read_engine_anchors(args.engine)
     rows, max_images, max_cost = build_plan(manifest, backend, budget,
-                                            args.max_images, args.max_cost)
+                                            args.max_images, args.max_cost, anchors)
 
     n, cost = print_table(rows, max_images, max_cost)
 

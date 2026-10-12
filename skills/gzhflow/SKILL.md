@@ -30,7 +30,7 @@ tags: [wechat, 公众号, content-publishing, workflow, cross-agent]
 | ④ 配图（可选） | `prompts/04-images.md` | `scripts/check_image_prompt.py`（PASS 才生成）→ `scripts/image_batch.py --plan-only`（过预算） | `cover.jpg` + 内文图 + 预算单 |
 | ⑤ 排版 | `prompts/05-layout.md` | `scripts/validate_gzh_html.py`（0 ERROR） | `{标题}_排版_{主题}.html` |
 | ⑥ 发布 | `prompts/06-publish.md` | `scripts/publish_draft.py --dry-run` 先验 | 草稿箱草稿 |
-| ⑦ 复盘 | `prompts/07-review.md` | 每 5 篇回写一次 | `assets/log.md` + 回写四库 |
+| ⑦ 复盘 | `prompts/07-review.md` | 每次手改记一笔；每 5 篇回写一次 | `assets/log.md` + `assets/learned-edits.md` + 回写各库 |
 
 **质量门是硬门槛**：脚本 FAIL 不进入下一阶段。**默认停靠点**：①②③ 阶段输出全文给用户审阅。
 
@@ -44,14 +44,19 @@ tags: [wechat, 公众号, content-publishing, workflow, cross-agent]
 | 范文锚 | `assets/voice-samples/` | 慢变（月） | 阶段② 动笔前读 1~3 段 |
 | 风格档案 | `assets/voice.md` | 慢变（季度） | 阶段② 前读；阶段⑦ 回写 |
 | 教训库 | `assets/lessons.md` | 事件驱动 | 被否 2-3 次时查；阶段⑦ 回写 |
+| 手改学习 | `assets/learned-edits.md` | 事件驱动 | 每次手改后记；阶段⑦ 蒸馏 |
+| 封面偏好 | `assets/cover-preferences.md` | 慢变 | 每篇发完记；攒够进 `anchors/` |
 
-**这四个库里，`inbox.md`、`voice-samples/` 里的范文段落、发文日志都被 gitignore**——
-开源的是流程和方法论，不是你写过的内容。clone 下来缺这些文件是正常的，
-首次使用照 `assets/voice-samples/README.md` 自建即可（那份 README 是公开的）。
+其中 `assets/inbox.md`、`assets/log.md`、`assets/voice-samples/` 里的范文段落、
+`examples/image-engines/anchors/` 下的锚图 **都被 gitignore**——
+开源的是流程和方法论，不是你写过的内容。
+clone 下来缺这些文件是正常的，首次使用照 `assets/voice-samples/README.md` 自建即可
+（那份 README 是公开的）。`lessons.md` / `learned-edits.md` / `cover-preferences.md`
+以骨架形式公开；如果你打算把真实手改稿填进去又不想公开，自行把对应文件加进 `.gitignore`。
 
 `state.md` 是跨会话状态机，见 §0。
 
-**references/ 有 38 份方法论，按阶段路由见 `references/INDEX.md`。** 别一次全读，按标题对上了再展开。
+**references/ 有 39 份方法论，按阶段路由见 `references/INDEX.md`。** 别一次全读，按标题对上了再展开。
 
 ## 2. 阶段①：素材先行
 
@@ -97,25 +102,26 @@ tags: [wechat, 公众号, content-publishing, workflow, cross-agent]
 
 ## 5. 阶段④：配图（可选，默认关）
 
-`config/workflow.yaml` 的 `stages.illustration: true` 才执行。读 `prompts/04-images.md` 与 `references/image-routing.md`、`references/image-style-routing.md`：
+`config/workflow.yaml` 的 `stages.illustration: true` 才执行。读 `prompts/04-images.md` 与 `references/image-routing.md`、`references/image-style-routing.md`、`references/cover-design.md`：
 
 1. **图源三问**（每个意象块独立决策，见 image-style-routing.md「图源决策」）：
    - 本体问：意象指向的东西现实中存在且读者认得出吗？→ 真实图（走 `references/real-image-collection.md` 渠道库）
    - 功能问：这张图要「证明」还是「营造」？证明→真实图；营造→AI 图
    - 素材问：网上有现成高质量合规真实图吗？有→用真的；找不到→AI 兜底
-2. **AI 轨风格路由**：读 `examples/image-engines/` 下引擎定义（watercolor/zine/sketchy/minimal/heytear 五套），按文风选风格；风格是参考不是限制，允许跨风格混搭
+2. **AI 轨风格路由**：读 `examples/image-engines/` 下引擎定义（watercolor/zine/sketchy/minimal/heytear/crt 六套），按文风选风格；风格是参考不是限制，允许跨风格混搭。**封面走两件套**（2.35:1 头图 + 1:1 分享卡，见 `references/cover-design.md`）
 3. **设计推理**：读 `references/design-reasoning.md`，按 6 项模板作答（≤60 秒）
 4. **四段式编译**：画布纸感/主体隐喻/文字色彩/氛围规避
 5. **质检门**：`echo "prompt" | python scripts/check_image_prompt.py` → PASS 才生成
-6. **预算门 + 生成**：先立 manifest——**清单之外的图一律不生成**。走预算层：
+6. **预算门 + 生成**：先立 manifest——**清单之外的图一律不生成**。manifest 顶层可带 `palette`（文章实体统一色板，见 `image-style-routing.md`）与 `anchors`（视觉锚，见 `examples/image-engines/anchors/README.md`）。走预算层：
    - `python scripts/image_batch.py --manifest generated/manifest.json --plan-only`（不调接口、不需 key，先看账）
    - 超预算 → `--auto-trim`（按 inline→金句卡→分享卡 顺序砍，**封面永不砍**）或调 `image_budget` 上限
    - 正式出图 `--receipt` 落预算单；迭代构图用 `--prompts-only`（零成本）
+   - 视觉锚：`--engine <名>` 读引擎的 `anchor_images`，`--anchors <目录>` 临时换一批
    - 后端按名字切：`image_backends.default`（agnes 免费试构图 / gpt-image-2 出定稿）
    - 质量分轨：封面 high、内文 medium、试稿 low——档位间差 35 倍，别乱用 high
    - 失败不阻塞：失败的图留 `.FAILED.txt`（含 prompt），Run 继续走完并在报告标注
-7. **裁剪**：`python scripts/crop_image.py`（封面 2.35:1 / 内文 16:9 / jpg）
-8. **视觉复核 + 用户确认**：先 1 张试水再批量（风格不确定时）
+7. **裁剪**：`python scripts/crop_image.py`（头图 2.35:1 / 分享卡 1:1 / 内文 16:9 / jpg）
+8. **视觉复核 + 用户确认**：先 1 张试水再批量（风格不确定时）；查色板一致性 + 封面两件套是否各成一图
 
 ## 6. 阶段⑤：排版
 
@@ -153,9 +159,11 @@ tags: [wechat, 公众号, content-publishing, workflow, cross-agent]
 
 读 `prompts/07-review.md`：
 
-- **每篇发完**：往 `assets/log.md` 追加一行（一分钟）
+- **每次手改后**：`python scripts/learned_edits.py --before <机器稿> --after <手改稿> --kind <类型> --append assets/learned-edits.md`
+  （它是记录器不是判官，不回写风格库；改完就记，隔天就忘）
+- **每篇发完**：往 `assets/log.md` 追加一行（一分钟）；封面记一行到 `assets/cover-preferences.md`
 - **每 5 篇**：回写一次——规律进 `assets/voice.md`，坑进 `assets/lessons.md`，
-  满意的稿子切 300 字段落进 `assets/voice-samples/`
+  满意的稿子切 300 字段落进 `assets/voice-samples/`；攒够 2 张认可封面 → 进 `examples/image-engines/anchors/`
 - 同时更新 `state.md` 的「已完成」区，把这篇的进度收掉
 
 **没有这一环，工作流只是传送带。** 第 10 篇要比第 1 篇聪明，靠的就是这个。

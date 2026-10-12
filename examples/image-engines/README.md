@@ -15,6 +15,23 @@
 
 > 风格路由：配图阶段先读 `references/image-style-routing.md` 的「图源三问」分轨（真实图 vs AI 图），AI 轨再按文风选引擎。所有引擎遵循「风格是参考不是限制」——允许跨风格借用/混搭，质检门（质感/雷区底线）仍生效。
 
+## 视觉锚（anchor_images）
+
+每个引擎 yaml 末尾有个 `anchor_images:` 字段（默认空），指向 `anchors/` 目录下你认可的参考图：
+
+```yaml
+anchor_images:
+  - watercolor-cover-like-01.png
+```
+
+生成时带上 `--engine <引擎名>`，这些图会作为参考图并进每张图的 refs（走 `/images/edits`）：
+
+```bash
+python scripts/image_batch.py --manifest generated/manifest.json --engine watercolor
+```
+
+没有锚图时保持空列表即可，生成走纯文字 prompt，不影响使用。挑选与登记方法见 `anchors/README.md`。
+
 ## 01-watercolor.yaml 使用要点（配图阶段照此执行）
 
 - 晕染色以水彩湿画法晕染、色带、洗淡照片区存在——**禁止平涂色块**（晕染区合计 10%-25%，单色块 <5%）

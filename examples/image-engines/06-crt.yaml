@@ -22,3 +22,8 @@ typography:
 layout:
   hard: ["彩色", "水彩晕染", "高饱和", "渐变", "3D", "霓虹", "照片写实", "商业插画", "可爱卡通"]
   soft: ["thick brush strokes", "messy scribble", "color blocks"]
+
+# ── 视觉锚（可选）──
+# 本引擎的风格锚图，路径相对 examples/image-engines/anchors/。
+# 默认空：没有锚图就走纯文字 prompt；挑选与登记方法见该目录 README。
+anchor_images: []

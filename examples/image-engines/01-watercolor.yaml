@@ -27,3 +27,8 @@ typography:
 layout:
   hard: ["全出血商业海报", "logo", "CTA", "玻璃拟态", "渐变紫", "霓虹", "3D渲染", "日系动漫脸", "高饱和色块", "干净UI白底"]
   soft: ["high saturation", "gradient", "drop shadow", "bokeh", "photo-realistic", "stock photo"]
+
+# ── 视觉锚（可选）──
+# 本引擎的风格锚图，路径相对 examples/image-engines/anchors/。
+# 默认空：没有锚图就走纯文字 prompt；挑选与登记方法见该目录 README。
+anchor_images: []

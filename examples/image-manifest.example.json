@@ -1,5 +1,6 @@
 {
   "article": "示例文章（用于演示与 CI 冒烟）",
+  "palette": ["#3A4A5A", "#C4A484", "#7A6A58"],
   "images": [
     {
       "id": "cover",
