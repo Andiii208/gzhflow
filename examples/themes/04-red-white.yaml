@@ -1,0 +1,24 @@
+# 排版主题：红白色系（Red White）
+# 与 skills/gzh-design/references/theme-red-white.md 同源。
+# 色值与下划线取 theme-index.md。红色克制使用，靠编号章节 + 引言卡撑力量感。
+name: "red-white"
+description: "红白色系：正红点睛的经典编辑风，适合深度分析/观点/力量感话题"
+
+colors:
+  bg: "#ffffff"
+  text: "#262626"
+  accent: "#DC2626"
+  quote_bg: "#fef2f2"
+  underline: "#FECACA"
+
+fonts:
+  body: "'PingFang SC', 'Microsoft YaHei', 'Noto Sans CJK SC', sans-serif"
+  heading: "'PingFang SC', 'Microsoft YaHei', sans-serif"
+
+layout:
+  body_size: "15px"
+  line_height: "1.78"
+  paragraph_margin: "0 0 1em"
+  side_margin: "12px"
+
+underline_css: "border-bottom:2px solid #FECACA;font-weight:600;"

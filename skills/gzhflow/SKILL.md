@@ -125,9 +125,13 @@ tags: [wechat, 公众号, content-publishing, workflow, cross-agent]
    - 教程/清单/盘点 → 摸鱼绿；深度观点/力量感 → 红白；科技/专业 → 石墨极简；禅意/随笔 → 留白禅意；测评对比 → 摸鱼票据；内刊/案例复盘 → 橄榄手记
    - 用户指定 → 直接用；无指定 → 给选项确认（全自动模式自动选并说明理由）
 2. **读组件库**：读所选主题的组件库 `skills/gzh-design/references/theme-{标识}.md` + 通用库 `common-components.md`（代码块/图片/GIF/小标签）——**HTML 一律从组件库取，不凭记忆手写**
-3. **转换**：`python scripts/md2wechat.py draft.md --theme <主题> -o 输出.html`（简易转换）**或**按组件库手工装配（复杂排版：章节编号、引言卡、目录导读、关键词下划线、金句块、END、签名区）
-   - **关键词下划线（核心特色）**：每个正文段落主动找 1-3 个核心短语，用 theme-index 登记的下划线 CSS 标记（即使原文无加粗也要标）
-   - **章节自动编号** 01/02/03…，末章结语用 ∞ 变体；**尾部签名区仅末尾一处**
+3. **转换**（两条路，自动优先）：
+   - **自动（默认走这条）**：`python scripts/md2wechat.py draft.md --theme <主题> -o 输出.html --enhance --underline "词A,词B"`
+     - `--enhance` = 章节自动编号（01/02/…，末章结语用 ∞）+ 文首引言卡 + 尾部签名区（签名取 config 的 `author`，未配置则不加并提示）
+     - `--underline` = Agent 挑好的关键词，用主题下划线色标记；稿里写 `==词==` / `++词++` 同样生效
+     - 主题 yaml 在 `examples/themes/`（`zen` / `minimal` / `moyu-green` / `red-white` / `graphite-minimal` / `moyu-ticket` / `olive-journal`），与 theme-index 同源
+   - **手工装配**：组件库在 `skills/gzh-design/references/theme-{标识}.md`，用于 `--enhance` 覆盖不到的部分（目录导读、金句块变体、END 标记等）
+   - **关键词下划线是核心特色**：每个正文段落主动找 1–3 个核心短语（**即使原文没有加粗也要标**）；短句密集的段落可少标或不标
 4. **校验**：`python scripts/validate_gzh_html.py 输出.html` → **0 ERROR + 半角标点 0 WARN** 才放行；复杂装配跑 `component_lint.py`
    （2026-10-12 起校验器已合并为一份，13 项 CSS 红线全覆盖——`skills/gzh-design/scripts/` 下那个路径改为转发到本脚本）
 5. **交叉核对**：md 里的每个 `##` 标题、`>` 金句、`![]` 图片必须全部出现在 HTML（grep 比对）

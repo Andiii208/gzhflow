@@ -1,0 +1,24 @@
+# 排版主题：摸鱼票据风（Moyu Ticket）
+# 与 skills/gzh-design/references/theme-moyu-ticket.md 同源。
+# 票据/门票视觉隐喻（组件库版有星级评分与硬阴影卡片，手工装配时更明显）。
+name: "moyu-ticket"
+description: "摸鱼票据风：票据隐喻、硬朗卡片，适合测评/工具对比/创意评测"
+
+colors:
+  bg: "#ffffff"
+  text: "#2f3437"
+  accent: "#059669"
+  quote_bg: "#f6fdfa"
+  underline: "#A7F3D0"
+
+fonts:
+  body: "'PingFang SC', 'Microsoft YaHei', 'Noto Sans CJK SC', sans-serif"
+  heading: "'PingFang SC', 'Microsoft YaHei', sans-serif"
+
+layout:
+  body_size: "15px"
+  line_height: "1.75"
+  paragraph_margin: "0 0 1em"
+  side_margin: "12px"
+
+underline_css: "border-bottom:2px solid #A7F3D0;font-weight:600;"

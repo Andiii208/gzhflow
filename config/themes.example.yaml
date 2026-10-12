@@ -4,10 +4,10 @@
 # default_theme: 匹配不到任何关键词时的兜底主题
 default_theme: "zen"
 
-# 主题的权威定义在 skills/gzh-design/references/theme-index.md（单一来源），
-# 每套主题的组件库是同目录下的 theme-{标识}.md。
-# examples/themes/ 下那两套 yaml 是给 md2wechat.py 轻量转换用的早期样本，
-# 不代表全部主题——真要自定义主题，改 theme-index.md 登记并新增 theme-*.md。
+# 主题的权威定义在 skills/gzh-design/references/theme-index.md（单一来源）：
+#   - skills/gzh-design/references/theme-{标识}.md = 组件库（手工装配用，含引言卡/章节卡/签名区等完整组件）
+#   - examples/themes/*.yaml = 同色值的轻量主题（scripts/md2wechat.py 自动渲染用）
+# 两边色值必须一致。改主题先改 theme-index.md，再同步 yaml（2026-10-12 补齐到 6 套 + minimal 示例）。
 routing:
   - topic_keywords: ["教程", "清单", "盘点", "干货", "工具", "知识"]
     theme: "moyu-green"        # 摸鱼绿：卡片丰富、信息密度高，默认推荐

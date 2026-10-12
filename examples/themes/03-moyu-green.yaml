@@ -1,0 +1,24 @@
+# 排版主题：摸鱼绿（Moyu Green）
+# 与 skills/gzh-design/references/theme-moyu-green.md 同源（组件库版为手工装配用）。
+# 色值与下划线取 skills/gzh-design/references/theme-index.md，保持单一权威来源。
+name: "moyu-green"
+description: "摸鱼绿：翠绿点睛、卡片丰富、信息密度高，适合教程/测评/清单/工具盘点"
+
+colors:
+  bg: "#ffffff"
+  text: "#2f3437"
+  accent: "#059669"
+  quote_bg: "#f0fdf9"
+  underline: "#A7F3D0"
+
+fonts:
+  body: "'PingFang SC', 'Microsoft YaHei', 'Noto Sans CJK SC', sans-serif"
+  heading: "'PingFang SC', 'Microsoft YaHei', sans-serif"
+
+layout:
+  body_size: "15px"
+  line_height: "1.75"
+  paragraph_margin: "0 0 1em"
+  side_margin: "12px"
+
+underline_css: "border-bottom:2px solid #A7F3D0;font-weight:600;"

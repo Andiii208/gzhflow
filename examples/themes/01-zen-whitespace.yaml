@@ -8,8 +8,9 @@ description: "留白禅意：大面积留白、衬线字体、克制配色，适
 colors:
   bg: "#ffffff"
   text: "#3f3f3f"
-  accent: "#8c8c8c"
+  accent: "#4A5D52"        # 与 theme-index.md 的留白禅意主色对齐（原 #8c8c8c）
   quote_bg: "#f7f7f5"
+  underline: "#B5C8BC"
 
 fonts:
   body: "'SimSun', 'Songti SC', 'STSong', 'Noto Serif CJK SC', 'Source Han Serif SC', serif"
@@ -20,3 +21,5 @@ layout:
   line_height: "1.75"
   paragraph_margin: "0 0 1em"
   side_margin: "12px"
+
+underline_css: "border-bottom:1.5px solid #B5C8BC;font-weight:500;"

@@ -13,6 +13,7 @@ class / id / @media / grid 等 13 项 CSS 红线漏在外面，而 README 和 CI
   4. 文字节点是否被 <span leaf> 包裹（粘贴后不掉样式）
   5. 半角标点与英文引号（代码块内不计）
   6. 内联渐变背景（公众号深色模式会弹 darkmode-no-gradient 提示）
+  7. style 属性被未转义引号截断（主题/配置里的注释漏进值的典型症状）
 
 用法:
     python scripts/validate_gzh_html.py <文件.html>
@@ -78,6 +79,9 @@ CSS_NON_FUNCTION = re.compile(
 GRADIENT_BACKGROUND = re.compile(
     r"background(?:-image)?\s*:[^;\"']*?\b(?:repeating-)?(?:linear|radial|conic)-gradient\s*\(",
     re.I)
+# 样式属性里混入了未转义的引号 → 属性被提前截断，后面的内容会变成裸文本或脏属性。
+# 2026-10-12 真实踩到：主题 yaml 的行尾注释没被剥掉，整段注释写进了 style="…"。
+BROKEN_STYLE_ATTR = re.compile(r"""style\s*=\s*"[^"]*"[^>]*"|style\s*=\s*'[^']*'[^>]*'""", re.I)
 
 
 def check_balance(html):
@@ -208,6 +212,13 @@ def validate(html):
         sample = "；".join("「%s」" % s for s in checker.half_punct[:5])
         warnings.append("%d 处正文疑似半角标点/英文引号，应改中文全角（代码块内不计）。例：%s"
                         % (len(checker.half_punct), sample))
+
+    # 样式属性被引号截断（多半是主题/配置里的注释漏进了值）
+    broken = list(BROKEN_STYLE_ATTR.finditer(html))
+    if broken:
+        sample = html[broken[0].start():broken[0].start() + 80].replace("\n", " ")
+        errors.append("%d 处 style 属性内混入了未转义的引号（属性被提前截断），"
+                      "后面的内容会变成脏属性或裸文本。例：%s…" % (len(broken), sample))
 
     # 渐变背景（挖掉注释/字符串/url 后再查，避免把示例文字当样式）
     masked = CSS_NON_FUNCTION.sub(" ", html)

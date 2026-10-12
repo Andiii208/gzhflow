@@ -1,0 +1,24 @@
+# 排版主题：橄榄手记（Olive Journal）
+# 与 skills/gzh-design/references/theme-olive-journal.md 同源。
+# 编辑部内刊质感：微暖纸底 + 墨黑正文 + 橙色点睛；下划线用橙色（theme-index.md 指定）。
+name: "olive-journal"
+description: "橄榄手记：内刊质感、暖纸底、橙色点睛，适合内刊手记/深度评测/案例复盘"
+
+colors:
+  bg: "#fbfaf7"
+  text: "#26221c"
+  accent: "#ed7b2f"
+  quote_bg: "#f4f1ea"
+  underline: "#ed7b2f"
+
+fonts:
+  body: "'SimSun', 'Songti SC', 'STSong', 'Noto Serif CJK SC', serif"
+  heading: "'PingFang SC', 'Microsoft YaHei', sans-serif"
+
+layout:
+  body_size: "15px"
+  line_height: "1.78"
+  paragraph_margin: "0 0 1em"
+  side_margin: "12px"
+
+underline_css: "border-bottom:2px solid #ed7b2f;font-weight:600;"

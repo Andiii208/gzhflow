@@ -1,0 +1,24 @@
+# 排版主题：石墨极简风（Graphite Minimal）
+# 与 skills/gzh-design/references/theme-graphite-minimal.md 同源。
+# 全灰阶 + 留白理性；下划线用石墨灰实线（theme-index.md 指定）。
+name: "graphite-minimal"
+description: "石墨极简风：全灰阶、克制理性、留白充分，适合设计/科技评论/专业观点"
+
+colors:
+  bg: "#ffffff"
+  text: "#3f3f46"
+  accent: "#52525B"
+  quote_bg: "#f4f4f5"
+  underline: "#52525B"
+
+fonts:
+  body: "'PingFang SC', 'Microsoft YaHei', 'Noto Sans CJK SC', sans-serif"
+  heading: "'PingFang SC', 'Microsoft YaHei', sans-serif"
+
+layout:
+  body_size: "15px"
+  line_height: "1.7"
+  paragraph_margin: "0 0 1em"
+  side_margin: "14px"
+
+underline_css: "border-bottom:2px solid #52525B;font-weight:600;"

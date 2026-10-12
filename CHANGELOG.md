@@ -18,6 +18,14 @@
 - `generate_image.py` 新增 `--quality`（质量档）、`--backend`（选后端）、
   `--refs`（参考图，走 `/images/edits`）；声明 `strict_sizes` 的后端会自动把尺寸
   对齐到 16 的倍数并校验宽高比 <3:1、像素区间
+- **主题扩容 2→7 套**：`examples/themes/` 新增 `moyu-green` / `red-white` / `graphite-minimal` /
+  `moyu-ticket` / `olive-journal`，与 `skills/gzh-design/references/theme-index.md` 的 6 套注册
+  主题色值对齐。此前 `md2wechat.py` 只能渲染 2 套、theme-index 却登记 6 套——
+  **全自动选主题这条路对 4 套主题是断的**，现已打通
+- `md2wechat.py --enhance`：章节自动编号（01/02/…，末章结语用 ∞）+ 文首引言卡 +
+  尾部签名区（签名取 config 的 `author`，未配置则不加并提示）
+- `md2wechat.py --underline "词A,词B"`：Agent 挑好要点后传入，按主题下划线色标记
+- 主题 yaml 新增 `colors.underline` 与可选 `underline_css`（各主题线宽/字重不同）
 - `references/long-image-layout.md` 补「长图节奏规范」：hook 占顶 15% → 章节图文交替
   → 结尾 CTA；矢量/位图分工（同时是成本策略）；不编造版面事实；空底=章节没画完的判定。
   来源 `zuoge` 的 `long_scroll`（Apache-2.0）
@@ -25,15 +33,26 @@
 
 ### Changed
 
-- `scripts/generate_image.py` 配置解析换成支持多层嵌套的极简 YAML 解析器；
-  顺带修掉两个潜在坑：行尾 `# 注释` 会被当成值的一部分（`model` 就会带上引号和注释）、
-  原解析器只支持一层嵌套
-- `scripts/validate_gzh_html.py` 新增**渐变背景检查**（`background:…gradient()` 会让
-  公众号深色模式弹 `darkmode-no-gradient` 提示）。源实现（gzh-design-skill）那条检查
-  因先把引号串整体挖掉而形同虚设——样式就写在 `style="…"` 的引号里，本版改为只挖注释与 `url()`
-- `prompts/04-images.md` 与 `skills/gzhflow/SKILL.md` ④ 阶段改为「立清单 → 预算门 → 出图」，
+- **修 `md2wechat.py` 不处理 `==高亮==` 的 bug**：此前这类标记被原样输出进公众号正文
+  （样例文章里两处 `==能力商品==` 实测残留）。这是 gzh-design 的「关键词下划线」核心特色，
+  现已实现，并支持 `++下划线++` / `~~荧光笔~~` / `<u>文字</u>`
+- **修 `md2wechat.py` 不剥行尾注释的 bug**：主题文件里 `accent: "#4A5D52"  # 说明` 会把整段
+  注释当色值写进 `style`，把属性引号截断。同类问题在 `generate_image.py` 一并修掉
+  （它会直接把带注释的 `model` 名发给 API）
+- **修 `md2wechat.py` 变量遮蔽 bug**：`convert()` 内把结果变量命名为 `html`，遮蔽了
+  同名模块，导致配置了作者名（走到尾部签名区）时 `html.escape()` 抛 `UnboundLocalError`。
+  修法与 CI：全主题冒烟补 `--author`，并新增「每套主题都要能渲染且 0 ERROR」一条
+- `md2wechat.py` 主题加载改深拷贝——浅拷贝会让后加载的主题拿到前一个主题的色值
+- `scripts/generate_image.py` 配置解析换成支持多层嵌套的极简 YAML 解析器（原先只支持一层）
+- `scripts/validate_gzh_html.py` 新增两项检查：
+  - **渐变背景**（`background:…gradient()` 会让公众号深色模式弹 `darkmode-no-gradient` 提示）。
+    源实现那条检查因先把引号串整体挖掉而形同虚设——样式就写在 `style="…"` 里，本版改为只挖注释与 `url()`
+  - **`style` 属性被未转义引号截断**（主题/配置注释漏进值的典型症状）
+- `prompts/04-images.md` 与 `SKILL.md` ④ 阶段改为「立清单 → 预算门 → 出图」，
   质检门从「PASS 才生成」扩展为「PASS → 过预算」两道
-- CI 补 `image_batch.py` 语法检查 + 两条预算层冒烟用例
+- `SKILL.md` ⑤ 阶段改写：自动路径（`--enhance`）为主、手工装配为补充；
+  `theme-index.md` 与 `examples/themes/README.md` 写明「两套主题机制、色值同源」的约定
+- CI 补 `image_batch.py` 语法检查 + 四条冒烟（预算层 ×2、`style` 截断、`--enhance` 产物合规）
 
 ## [0.2.0] - 2026-10-12
 
