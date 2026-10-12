@@ -9,7 +9,9 @@
 ## 特性
 
 - **跨 Agent 开箱即用**：`AGENTS.md` 单一真源 + `CLAUDE.md` 一行桥接，任何 Agent 打开即懂
-- **六阶段流水线**：素材先行 → 写作 → 去AI味 → 配图 → 排版 → 推草稿箱，每步有质量门
+- **七阶段流水线**：素材先行 → 写作 → 去AI味 → 配图 → 排版 → 推草稿箱 → 复盘回写
+- **四库 + 状态机**：收件箱 / 范文锚 / 风格档案 / 教训库在下沉淀，`state.md` 跨会话接续
+- **质检门有实测依据**：规则来自 629 篇 283 万字的对照语料研究（`lieflat-less-ai-tone`，MIT），不是拍脑袋
 - **个人化可替换**：文风/配图风格/排版主题全部走 `config/` 配置 + `examples/` 模板，流程不绑定个人
 - **质量门三件套**：脚本门（确定性）+ 清单门（LLM 自检）+ 人工门（审阅/dry-run）
 - **发布层个人号可用**：官方 API `draft/add` 推草稿箱（个人订阅号可用），手动粘贴兜底
@@ -53,16 +55,32 @@ bash dsh-preset/install.sh                                       # macOS / Linux
 
 详见 [`dsh-preset/README.md`](dsh-preset/README.md)。
 
-## 六阶段流程
+## 七阶段流程
 
 | 阶段 | 作用 | 质量门 |
 |---|---|---|
-| ① 素材先行 | 提问挖真实素材，杜绝编造 | 意图三问 |
-| ② 写作 | 按文风路由写作 | `ai_flavor_score.py` + 自检四问 |
-| ③ 去AI味 | 结构手术 + 声音层 + 人称适配 | `ai_flavor_score.py` 复检 |
+| ① 素材先行 | **先翻收件箱和对话存量**，缺什么才问，只问一轮 | 意图三问 |
+| ② 写作 | 读风格档案 + 范文锚，按文风路由写作 | `ai_flavor_score.py` + 自检四问 |
+| ③ 去AI味 | 三环：结构手术 → 冷读重写 → 分视角评审 | `ai_flavor_score.py` 复检 |
 | ④ 配图（可选） | 图源三问 → 风格路由 → 四段式编译 | `check_image_prompt.py` |
 | ⑤ 排版 | 主题路由 → Markdown 转公众号 HTML | `validate_gzh_html.py` |
 | ⑥ 发布 | 推草稿箱（个人号可用） | `publish_draft.py --dry-run` |
+| ⑦ 复盘 | 记日志，每 5 篇回写四库 | — |
+
+## 四库与状态机
+
+单篇生产只是飞轮的一段弧。底下四个库在下持续沉淀，单篇流程在上取用并回写：
+
+| 库 | 文件 | 变化速度 |
+|---|---|---|
+| 输入收件箱 | `assets/inbox.md` | 快变（日） |
+| 范文锚 | `assets/voice-samples/` | 慢变（月） |
+| 风格档案 | `assets/voice.md` | 慢变（季度） |
+| 教训库 | `assets/lessons.md` | 事件驱动 |
+
+`state.md` 是跨会话状态机——多 Agent 之间切换时，靠它接续上下文，不重复提问。
+
+`references/` 里 38 份方法论按阶段路由见 [`references/INDEX.md`](references/INDEX.md)。
 
 ## 目录结构
 
@@ -70,7 +88,9 @@ bash dsh-preset/install.sh                                       # macOS / Linux
 gzhflow/
 ├── AGENTS.md            # 跨 Agent 入口（单一真源）
 ├── CLAUDE.md            # Claude Code 桥接（@AGENTS.md）
-├── skills/gzhflow/      # 主编排 SKILL.md + 六阶段 prompts/
+├── state.md             # 跨会话状态机（每次会话先读）
+├── assets/              # 四库：inbox / voice / voice-samples / lessons / log
+├── skills/gzhflow/      # 主编排 SKILL.md + 七阶段 prompts/
 ├── references/          # 方法论活文档
 ├── scripts/             # 纯 CLI 质检/排版/裁剪/推草稿
 ├── config/*.example     # 配置模板（你的文风/主题/凭证）
