@@ -23,6 +23,7 @@
 不指定时用生成侧整体均值 2.38。
 
 退出码: 0 = 无 FAIL, 1 = 有 FAIL（必须清零后才能交稿）
+文体分流：draft.md frontmatter 写 genre: 抒情 / 说理 / 测评，抒情类跳过数字密度提示。
 """
 import argparse
 import re
@@ -41,17 +42,34 @@ MODEL_DASH = {
 DASH_HUMAN = 0.80      # 人类侧基准
 DASH_DEFAULT = 2.38    # 未指定模型时用生成侧整体均值
 
-# FAIL：命中必须清零。多数是词汇层，删掉就行，不涉及重写。
+# FAIL：命中必须清零。
+# 2026-10-12 收窄过一次。此前翻案句、拟人化喻体、黑话、破折号也在这里，
+# 结果拿作者本人写的四段范文跑了一遍，四段里三段被 FAIL——全是误杀：
+#   「绝不是断层的色带，而是混合交织的多彩」被判翻案句（这是他写得最好的一句）
+#   破折号每千字 1.65 次被判超阈值（那是他的个人习惯，通用人类基准只有 0.80）
+#   「AI占据了自己的生态位」被判黑话（这里是准确的专业词，不是模型腔）
+# 所以立了条规矩：门如果拦作者本人，它就是错的。现在只留两项纯模型腔词汇，
+# 人类几乎不用，误杀率最低。其余全部降为 WARN，看报告自己判断。
 HARD_BANS = {
-    # 对举结构，R=3.4，本项目踩坑最多的一项
+    # 一开口就是"值得注意的是"，读者立刻知道不是人写的
+    "模型路标": re.compile(r"值得注意的是|需要指出的是|更微妙的是|不难发现|显而易见|"
+                           r"总的来说|归根结底|换言之|换句话说|值得一提的是"),
+
+    # 段首起首语，R=3.2。说白了/说到底同时归这里和下面的段首零回指
+    "起首语": re.compile(r"说白了|说穿了|先说结论|言归正传|总而言之|综上所述"),
+}
+
+# WARN：体检报告项，不拦稿，人看了自己判断。带 R 的是 lieflat 实测通过的。
+# 翻案句 / 拟人化喻体 / 黑话三项 2026-10-12 从 FAIL 降到这里——实测会误杀作者本人，
+# 详见 HARD_BANS 上方的说明。
+WARN_ITEMS = {
+    # 对举结构，R=3.4。人类侧也有 0.22/千字，是正常的转折强调，
+    # 只在连续出现多处时才值得警惕
     "翻案句": re.compile(
         r"不是[^。！？]{2,20}而是|并非[^。！？]{2,20}而是|"
         r"不在于[^。！？]{2,20}而在于|与其说[^。！？]{2,20}不如说|"
         r"表面[^。！？]{2,20}其实|看似[^。！？]{2,20}实则|"
         r"看似[^。！？]{2,20}实际上"),
-
-    # 段首起首语，R=3.2。说白了/说到底同时归这里和下面的段首零回指
-    "起首语": re.compile(r"说白了|说穿了|先说结论|言归正传|总而言之|综上所述"),
 
     # 拟人化喻体，R=7.3，区分力最强的一项。禁的不是比喻本身（人类比 AI 更爱比喻），
     # 禁的是"像一位智慧的导师""一个永不疲倦的初级审查员"这种理想化职业人格
@@ -61,17 +79,11 @@ HARD_BANS = {
         r"向导|引路人|灯塔|舵手|守门人|裁判|教练|工匠|园丁|建筑师|"
         r"观察者|记录者|叙事者|策展人)"),
 
-    # 模型路标：一开口就是"值得注意的是"，读者立刻知道不是人写的
-    "模型路标": re.compile(r"值得注意的是|需要指出的是|更微妙的是|不难发现|显而易见|"
-                           r"总的来说|归根结底|换言之|换句话说|值得一提的是"),
-
+    # 黑话。语境准就留——"占据生态位"里的生态位是专业词，不是模型腔
     "黑话（模型腔）": re.compile(
         r"赋能|抓手|闭环|底层逻辑|顶层设计|降本增效|全链路|组合拳|"
         r"商业闭环|护城河|第二曲线|心智|赛道|生态位|势能"),
-}
 
-# WARN：体检报告项，不拦稿，人看了自己判断。带 R 的是 lieflat 实测通过的。
-WARN_ITEMS = {
     # 冒号。以前是一刀切 FAIL，把"时间：2024年秋天"一起杀了。
     # 实测有区分力的是提示性冒号（R=3.8）和空转句引列表（R=9.4），其余冒号无区分力。
     # 这里只查这两种：段首/段中挂着程度副词然后冒号引出解释，以及"如下/包括"这类空转引列表。
@@ -141,6 +153,18 @@ def strip_signature(text):
     return "\n".join(kept)
 
 
+def read_genre(raw):
+    """从 frontmatter 读 genre 字段，用于按文体分流。
+
+    在 draft.md 的 frontmatter 里写 genre: 抒情 / 说理 / 测评，
+    抒情类会跳过"数字偏少"提示——散文里没数字是正常的。
+    """
+    m = re.search(r"^genre\s*[:=]\s*(.+)", raw, re.M)
+    if not m:
+        return ""
+    return m.group(1).strip().strip("\"'")
+
+
 def sentence_signature(sent):
     """句子结构指纹：逗号数、有无冒号、有无括号、长度档。"""
     return (sent.count("，"), "：" in sent,
@@ -182,7 +206,7 @@ def dash_threshold(model):
     return max(DASH_HUMAN, rate * 0.6)
 
 
-def detect(text, model=None):
+def detect(text, model=None, genre=""):
     fails, warns = [], []
 
     for name, pat in HARD_BANS.items():
@@ -262,23 +286,24 @@ def detect(text, model=None):
                 warns.append("[WARN] 短段连击: 连续 ≥3 段过短（每段 ≤15 字，节奏细碎）")
                 break
 
-    # 破折号：按模型阈值判，不再一刀切
+    # 破折号。2026-10-12 从 FAIL 降为 WARN：实测作者本人每千字 1.65 次，
+    # 高于通用人类基准 0.80，那是他的个人习惯。拿通用基准卡作者就是卡他的风格。
+    # 阈值照算，但只报告，让人自己跟"自己平时用多少"比。
     plain = text
     body_chars = len(re.sub(r"\s", "", plain))
     if body_chars >= 200:
         dashes = len(DASH_RE.findall(plain))
         per_k = dashes * 1000.0 / body_chars
         thr = dash_threshold(model)
-        if per_k > thr:
-            fails.append("[FAIL] 破折号: 每千字 %.2f 次，超过 %s 的阈值 %.2f"
-                         % (per_k, model or "默认", thr))
-        elif per_k > DASH_HUMAN:
-            warns.append("[WARN] 破折号: 每千字 %.2f 次，高于人类基准 %.2f 但未超当前模型阈值"
-                         % (per_k, DASH_HUMAN))
+        if per_k > DASH_HUMAN:
+            warns.append("[WARN] 破折号: 每千字 %.2f 次，人类基准 %.2f，%s 阈值 %.2f。"
+                         "跟你自己平时比，别跟通用基准比"
+                         % (per_k, DASH_HUMAN, model or "默认", thr))
 
     # 数字密度。实测反向：人类每千字 17.92 个数字，生成侧只有 6.34（R=0.35）。
     # 人类是 AI 的 2.8 倍。数字太少往往意味着写得不够具体。
-    if body_chars >= 400:
+    # 抒情类不报——实测作者的抒情样本数字密度是 0.0，硬报会推动人家去散文里塞数据。
+    if body_chars >= 400 and "抒情" not in genre:
         digits = len(re.findall(r"[0-9０-９]|一两三四五六七八九十百千万亿", plain))
         per_k = digits * 1000.0 / body_chars
         if per_k < 8:
@@ -295,19 +320,21 @@ def main():
     ap.add_argument("--model", help="当前用的模型（gpt/gemini/kimi/claude/deepseek），只影响破折号阈值")
     args = ap.parse_args()
 
+    genre = ""
     if args.text:
         text = args.text
     elif args.path == "-":
         text = sys.stdin.read()
     elif args.path:
-        text = open(args.path, encoding="utf-8").read()
-        text = strip_frontmatter(text)
+        raw = open(args.path, encoding="utf-8").read()
+        genre = read_genre(raw)
+        text = strip_frontmatter(raw)
         text = strip_signature(text)
     else:
         ap.print_help()
         sys.exit(2)
 
-    fails, warns = detect(text, args.model)
+    fails, warns = detect(text, args.model, genre)
 
     if warns:
         print("⚠️  WARN 项（体检报告，人工判断）:")
