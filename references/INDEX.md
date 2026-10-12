@@ -1,6 +1,6 @@
 # references 索引（按阶段路由）
 
-这个文件存在的理由：`references/` 攒了 39 份方法论，但**只有 8 份被 SKILL.md 或 prompts 显式点名**，
+这个文件存在的理由：`references/` 攒了 40 份方法论，但**只有 8 份被 SKILL.md 或 prompts 显式点名**，
 剩下 30 份基本处于"谁也读不到"的状态——2026-10-12 实测，其中 17 份全仓只有一个入链，
 而且那个入链来自历史文档，不是活流程。
 
@@ -68,6 +68,7 @@
 | `image-routing` | 配图总路由 |
 | `image-style-routing` | 图源三问 + 风格路由 + 文章实体统一色板 |
 | `cover-design` | 封面两件套（2.35:1 头图 + 1:1 分享卡）+ 构图类型 + 封面学习环 |
+| `quote-card` | 金句卡：文字分档（≤20 字直接生图）、1080 版式、七条品味底线 |
 | `design-reasoning` | 设计推理 6 问 |
 | `real-image-collection` | 真实图渠道库 |
 | `agnes-image-gen` | Agnes 图生脚本（在仓库外，Mac 上要重接） |

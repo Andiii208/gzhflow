@@ -42,8 +42,8 @@
 | L先生说风（焦虑/拖延/自律/方法论） | 石墨极简 | `andiii-minimal-style` | ✅ 已建（2026-08-03） |
 | 喜茶风（新中式/茶饮/生活美学） | 新中式茶饮（米白/茶色/水墨/印章） | `andiii-heytear-style` | ✅ 已建（2026-08-03 子 agent 蒸馏） |
 | 潦草风（手账/随性/涂鸦） | 涂鸦手账 / sketchy | `andiii-sketchy-style` | ✅ 已建（2026-08-03 子 agent 蒸馏） |
-| CRT 复古（科技怀旧/极客/游戏/像素/数码回忆） | 复古 CRT 电脑界面（像素壁纸+悬浮视窗+扫描线） | `andiii-crt-style` | ✅ 已建（2026-08-06，TaiT-tt/tait-crt-interface-skill 文生图版适配） |
-| 观点/评论/深度随笔（黑白编辑插画感/克制叙事/讽刺） | 黑白针管笔线条（relaxed black-pen） | `antibes-holiday` | ⚠️ 2026-08-07《认识很容易朋友很难》（共情+思辨向软观点文）被否「我不想要这个风格」，用户改选 Zine——针管笔只适合硬观点/讽刺/立场表达，情绪共情向默认优先 zine |
+| CRT 复古（科技怀旧/极客/游戏/像素/数码回忆） | 复古 CRT 电脑界面（像素壁纸+悬浮视窗+扫描线） | `examples/image-engines/06-crt.yaml` | ✅ 已建（2026-08-06 首版；2026-10-12 按 TaiT-tt/tait-crt-interface-skill 重写为真 CRT 界面引擎，此前内容误为针管笔） |
+| 观点/评论/深度随笔（黑白编辑插画感/克制叙事/讽刺） | 黑白针管笔线条（relaxed black-pen） | `examples/image-engines/07-pen-line.yaml`（原 `antibes-holiday`） | ✅ 已建；⚠️ 2026-08-07《认识很容易朋友很难》（共情+思辨向软观点文）被否「我不想要这个风格」，用户改选 Zine——针管笔只适合硬观点/讽刺/立场表达，情绪共情向默认优先 zine。也是「纽约客编辑风」主题的配图搭子 |
 | 教程/清单/盘点 | 信息图 / 示意图 | ⚠️ **不走 AI 生图**（生图文字乱码）——用 gzh-design 排版组件或 HTML/SVG | 备注 |
 
 ## 图源策略表(按文章类型,2026-08-19)
@@ -68,7 +68,7 @@
 4. skill_view(name='<引擎>') → **设计推理（design-reasoning.md 6 项，必做）** → 编译四段式 prompt → 质检门 → 生成 → 视觉复核 → 用户确认
 4.5. **文章实体 → 统一色板**：全文若有一个反复出现的实体，定 3 个 hex 写进 manifest 的 `palette`（见下节）；没有就不加，别硬凑
 5. 路由表状态为 ❌ 的风格：暂时回退手绘水彩或通用 prompt，并提示用户该风格待蒸馏
-6. ⚠️ `antibes-holiday`（黑白针管笔）不走 check_engine_prompt.py 质检门——用其自带的 Comparative Validation（Physicality/Tempo/Instability/Shorthand/Relaxation/Transfer/Originality 七道主门），prompt 编译用它的 prompt-recipes.md 而非四段式
+6. ⚠️ 针管笔（`07-pen-line.yaml`，原 `antibes-holiday`）质检门要带 `--engine pen-line`——它的材质词不是水彩系，不带会被「必需项缺失」误判 FAIL。它的 prompt 编译用其自带的 Comparative Validation（Physicality/Tempo/Instability/Shorthand/Relaxation/Transfer/Originality 七道主门）与 prompt-recipes.md，而非四段式
 7. 🔴 针管笔试水教训（2026-08-06）：抽象线条碰撞（"两套天经地义撞在一起"）被用户否「感觉这图有点抽象了呀」；换**具体场景**（长桌两端背影+中央空杯，对应沉默/没说的话）通过。线条风配图同样要可识别的人/物/叙事意象（用 Story Scene / Functional Object 配方），不画脸、人物用背影/侧影轮廓。⚠️ 人物朝向关系必须画得出（2026-08-07 实测：prompt 写「两人面对面」但只画两个背影+左右分布，看起来像背对背被否——改为侧面剪影相对：一人面朝左一人面朝右、头互相朝向对方）。⚠️ 封面不可与正文图重复（用户纠正：「肯定不能跟正文图片是一样的呀」——正文图裁剪当封面会被要求换）。⚠️ Hermes image_generate(Wan2.7) 不收参考图 → 用文字化线条行为规格（漂移/错位/戛然而止/局部墨色加深/笔尖微不稳）代替 stroke-calibration.png。先 1 张具体场景试水再批量
 ```
 

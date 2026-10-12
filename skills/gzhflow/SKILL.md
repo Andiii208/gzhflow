@@ -19,6 +19,8 @@ tags: [wechat, 公众号, content-publishing, workflow, cross-agent]
 2. **配置**：确认 `config/workflow.yaml`、`config/styles.yaml`、`config/themes.yaml`、`config/publish.yaml` 存在（不存在则从 `*.example.yaml` 复制，并让用户确认配置）。
 3. **产物目录**：所有产物（草稿 md、HTML、图片）写入 `config/workflow.yaml` 的 `output_dir`（默认 `generated/`，已 gitignore）。
 4. **审核模式**：默认 `strict`——每个阶段输出都给用户审阅；用户明确说「直接做/不用审阅」才切 `auto` 全自动。
+   全自动时按 `prompts/00-run.md` 的 Run 规范执行（零提问 + 决策日志 + 轮次封顶），
+   并**强提醒用户中途不要等**——Run 会一次跑完再交付。
 
 ## 1. 七阶段总览
 
@@ -56,7 +58,24 @@ clone 下来缺这些文件是正常的，首次使用照 `assets/voice-samples/
 
 `state.md` 是跨会话状态机，见 §0。
 
-**references/ 有 39 份方法论，按阶段路由见 `references/INDEX.md`。** 别一次全读，按标题对上了再展开。
+**references/ 有 40 份方法论，按阶段路由见 `references/INDEX.md`。** 别一次全读，按标题对上了再展开。
+
+## 1.6 Run 模式（一次任务怎么跑完）
+
+七阶段是**环节**，Run 是**一次任务**。完整定义读 `prompts/00-run.md`，要点：
+
+- **双模式**：全自动（默认，零提问）／交互（在选题/框架处暂停）。全自动模式**零配置可跑**
+- **四条硬约束**：墙钟 ≤40 分钟（目标 25）｜正文配图 ≤4 张（金句卡等附加产出按需追加）｜
+  成本上限默认 ~$0.3/篇｜**人的介入点 = 2**（开头给信息、结尾看预览，中间零提问）
+- **Run 状态机**：`state.md` 记到 **step 级**，每阶段完成即落盘；断线/失败从断点恢复，
+  **不重跑已完成阶段**
+- **决策日志**（`generated/决策日志.md`）：不问，但**全部交代**——选题理由、主题理由、
+  类型判定、图片清单与预算、自动修了什么、降级了什么。这是交付的一部分，不是可选项
+- **轮次封顶**：每个 LLM 环节（③a/③b/③c）**最多 1 轮自动修复**，之后带报告交付，
+  不做「再试一次可能更好」的循环
+- **发布永不进 Run**：推草稿箱是显式授权的独立动作（安全边界）
+
+> ⚠️ 时长/成本数字是设计目标，**待第 1 篇真跑回填**（见 `00-run.md` 末条）。
 
 ## 2. 阶段①：素材先行
 
@@ -108,10 +127,12 @@ clone 下来缺这些文件是正常的，首次使用照 `assets/voice-samples/
    - 本体问：意象指向的东西现实中存在且读者认得出吗？→ 真实图（走 `references/real-image-collection.md` 渠道库）
    - 功能问：这张图要「证明」还是「营造」？证明→真实图；营造→AI 图
    - 素材问：网上有现成高质量合规真实图吗？有→用真的；找不到→AI 兜底
-2. **AI 轨风格路由**：读 `examples/image-engines/` 下引擎定义（watercolor/zine/sketchy/minimal/heytear/crt 六套），按文风选风格；风格是参考不是限制，允许跨风格混搭。**封面走两件套**（2.35:1 头图 + 1:1 分享卡，见 `references/cover-design.md`）
+2. **AI 轨风格路由**：读 `examples/image-engines/` 下引擎定义（watercolor/zine/sketchy/minimal/heytear/crt/pen-line 七套），按文风选风格；风格是参考不是限制，允许跨风格混搭。**封面走两件套**（2.35:1 头图 + 1:1 分享卡，见 `references/cover-design.md`）
 3. **设计推理**：读 `references/design-reasoning.md`，按 6 项模板作答（≤60 秒）
 4. **四段式编译**：画布纸感/主体隐喻/文字色彩/氛围规避
-5. **质检门**：`echo "prompt" | python scripts/check_image_prompt.py` → PASS 才生成
+5. **质检门**：`python scripts/check_image_prompt.py --engine <引擎> <prompt文件>` → PASS 才生成
+   - **非水彩引擎必须带 `--engine`**（CRT/针管笔的材质词不是水彩系，不带会被误判 FAIL）
+   - 金句卡走 `references/quote-card.md`
 6. **预算门 + 生成**：先立 manifest——**清单之外的图一律不生成**。manifest 顶层可带 `palette`（文章实体统一色板，见 `image-style-routing.md`）与 `anchors`（视觉锚，见 `examples/image-engines/anchors/README.md`）。走预算层：
    - `python scripts/image_batch.py --manifest generated/manifest.json --plan-only`（不调接口、不需 key，先看账）
    - 超预算 → `--auto-trim`（按 inline→金句卡→分享卡 顺序砍，**封面永不砍**）或调 `image_budget` 上限

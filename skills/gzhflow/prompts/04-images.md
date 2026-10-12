@@ -45,10 +45,15 @@ P4 氛围与规避: [氛围词], avoid [规避词1]; avoid [规避词2]; ...
 ### Step 4：质检门
 
 ```bash
-echo "prompt内容" | python scripts/check_image_prompt.py
+# 水彩系
+python scripts/check_image_prompt.py <prompt文件>
+
+# 非水彩引擎（CRT / 针管笔 / zine …）必须带 --engine，否则材质词对不上会被误判
+python scripts/check_image_prompt.py --engine crt <prompt文件>
 ```
 - FAIL → 改 prompt 直到 PASS；WARN → 尽量消除
 - **PASS 才允许调图生后端**
+- 金句卡的文字/版式规则见 `references/quote-card.md`（先过那道再进预算层）
 
 ### Step 4.5：实体色板 + 视觉锚（写进 manifest）
 
@@ -81,7 +86,8 @@ echo "prompt内容" | python scripts/check_image_prompt.py
 }
 ```
 
-`role` 四选一：`cover`（封面，永不砍）/ `share`（1:1 分享卡）/ `quote-card`（金句卡）/ `inline`（内文图）。
+`role` 四选一：`cover`（封面，永不砍）/ `share`（1:1 分享卡）/ `quote-card`（金句卡，规则见 `references/quote-card.md`）/ `inline`（内文图）。
+金句卡是**按需追加**，不占默认 4 张；一篇文章最多 3 张。
 `quality` 省略时按 role 走 `image_budget` 默认档。
 `palette` / `anchors` 都可省略；`refs` 给单张图挂实体锚（某张专辑封面等）。
 

@@ -11,9 +11,29 @@
 | 03-sketchy.yaml | 潦草手账（铅笔线条/胶带/涂改） | 日常随感/小事记录 |
 | 04-minimal.yaml | 石墨极简（全灰阶/留白理性） | 科技/专业观点/高端 |
 | 05-heytear.yaml | 喜茶拙趣（手作感/暖调/轻快） | 生活/美食/轻松话题 |
-| 06-crt.yaml | 黑白针管笔（细线/疏密对比/无彩） | 文艺/深度/黑白摄影感 |
+| 06-crt.yaml | 复古 CRT 电脑界面（位图+扫描线+悬浮视窗） | 科技怀旧/极客/游戏/数码回忆 |
+| 07-pen-line.yaml | 黑白针管笔（细线/疏密对比/无彩） | 文艺/深度/黑白摄影感 |
+
+> 2026-10-12 修正：`06-crt` 此前内容实为「黑白针管笔」，与文件名和路由表都对不上。
+> 现把「crt」还给真正的 CRT 界面引擎（措辞炼化自 TaiT-tt/tait-crt-interface-skill），
+> 针管笔内容移到 `07-pen-line`。
 
 > 风格路由：配图阶段先读 `references/image-style-routing.md` 的「图源三问」分轨（真实图 vs AI 图），AI 轨再按文风选引擎。所有引擎遵循「风格是参考不是限制」——允许跨风格借用/混搭，质检门（质感/雷区底线）仍生效。
+
+## 质检门要带 `--engine`（非水彩引擎必须带）
+
+`scripts/check_image_prompt.py` 的材质词表**默认只认水彩系**（纸感 + 笔触）。CRT、针管笔这类引擎
+的 prompt 里没有水彩词，不带 `--engine` 会被误判 FAIL：
+
+```bash
+# 对：带上引擎，按该引擎 texture.fields 声明的词校验
+python scripts/check_image_prompt.py --engine crt <prompt文件>
+
+# 错：CRT prompt 不带 --engine → 报「必需项缺失: 纸感/承载面词」
+python scripts/check_image_prompt.py <prompt文件>
+```
+
+`--engine` 接受引擎名（`crt` / `watercolor` / `07-pen-line`）或 yaml 路径。
 
 ## 视觉锚（anchor_images）
 

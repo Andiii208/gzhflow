@@ -49,7 +49,18 @@
   > 计划原列候选 `mono-black` / `warm-editorial` 未采纳：`mono-black` 与已有
   > `graphite-minimal` 同属全灰阶，`warm-editorial` 的琥珀橙与 `olive-journal` 的橙撞色；
   > 改选 `mist-blue` 是因为蓝是真空缺。若你更想要原来的两套，说一声换回来即可。
-  > 另：纽约客的「线稿」那半不必新建引擎——`examples/image-engines/06-crt.yaml` 已是黑白针管笔。
+  > 另：纽约客的「线稿」那半不必新建引擎——针管笔引擎已存在（见下方 `07-pen-line`），
+  > 纽约客编辑风直接与它配对即可。
+- **B4 金句卡** `references/quote-card.md`：思辨文抽 1–3 句做可转发小卡。文字分档
+  （≤20 字直接生图 / 21–40 字拆两张 / >40 字退回排版层金句块，**生成后必须逐字核对卡面**）、
+  1080px 版式规范（正文 ≥40px、行高 1.9、有效宽 ~896px、`#171717` 不用纯黑）、
+  七条品味底线（吸收 `lijigang/ljg-skills` 的 `taste.md`，MIT）。**技术路线换成直接生图**——
+  ljg 用 HTML+无头浏览器截图，与「Run 路径零依赖」冲突
+- **Run 模式** `skills/gzhflow/prompts/00-run.md` + SKILL.md §1.6 + `state.md` 加 run 级字段：
+  一次任务的定义（输入三选一 → ≤40 分钟 → 成品文件夹）、四条硬约束（墙钟 40 分钟 /
+  正文图 ≤4 张 / 成本上限 / 人介入点 = 2）、双模式（全自动零提问 ／ 交互）、
+  Run 状态机（step 级落盘，**断点续跑不重跑**）、决策日志（不问但全部交代）、
+  轮次封顶（每 LLM 环节 ≤1 轮自动修复后带报告交付）。⚠️ 时长/成本数字标注为待真跑回填
 
 ### Changed
 
@@ -79,6 +90,16 @@
   references 计数 38 → 39
 - `SKILL.md` ④ ⑦ 与库表接线（色板/锚图/封面两件套/手改学习），修引擎数量笔误（五套 → 六套）
 - CI 补 `learned_edits.py` 语法检查 + 三条冒烟（色板注入、非法色板报错、手改记录/无改动退出 4）
+- **修 `check_image_prompt.py` 硬编码水彩词的 bug**：必需项原本写死「纸感词 + 笔触词」，
+  任何非水彩引擎（CRT / 针管笔 / zine）的 prompt 都必然 FAIL——与「换风格只换引擎文件、
+  管线不动」的设计自相矛盾。新增 `--engine <名|路径>`：按该引擎 `texture.paper/effects`
+  声明的词追加校验；另补通用词表（scanline/halftone/hatching/stipple、承载面词）。
+  CI 加两条反向冒烟（不带 `--engine` 时 CRT prompt 必须 FAIL；引擎名不存在退出 2）
+- **B5 `06-crt.yaml` 重写为真正的 CRT 界面引擎**：此前该文件内容实为「黑白针管笔」，
+  与文件名、与路由表的「复古 CRT 电脑界面」都对不上。现按 `TaiT-tt/tait-crt-interface-skill`
+  （522⭐）炼化：8 组色板登记表（经典/粉黛/极客/复古/游戏）、调色板绑定（禁卡外颜色/渐变/
+  抗锯齿/半透明）、扫描线 + 硬方像素格 + 一格错位 + 短余辉 + 硬边辉光、外圈 10% 桶形畸变。
+  原针管笔内容移至 `examples/image-engines/07-pen-line.yaml`（引擎数 6 → 7）
 
 ## [0.2.0] - 2026-10-12
 

@@ -78,6 +78,14 @@ jobs:
       - name: 配图 prompt 质检门冒烟（PASS 态）
         run: |
           echo "cold-pressed paper, brush stroke, 晕染, 16:9" | python scripts/check_image_prompt.py > /dev/null
+      - name: 配图 prompt 质检门冒烟（非水彩引擎必须带 --engine）
+        run: |
+          printf '16:9 Minitel-style flat field, dense palette-bound scanlines, hard square pixel lattice; avoid gradient; avoid soft glow\n' > /tmp/crt.txt
+          python scripts/check_image_prompt.py --engine crt /tmp/crt.txt
+          ! python scripts/check_image_prompt.py /tmp/crt.txt
+      - name: 配图 prompt 质检门冒烟（引擎名不存在必须报错，退出码 2）
+        run: |
+          ! python scripts/check_image_prompt.py --engine 不存在的引擎 /tmp/crt.txt
       - name: HTML 校验冒烟（合规 HTML 通过）
         run: |
           printf '<section><p><span leaf="">你好</span></p></section>' | python scripts/validate_gzh_html.py --stdin

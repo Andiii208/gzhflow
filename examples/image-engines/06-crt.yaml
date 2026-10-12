@@ -1,27 +1,35 @@
-# 配图引擎：黑白针管笔（crt / tait 风格）
-# 炼化自 andiii-wechat-workflow/skills/andiii-crt-style（MIT）
+# 配图引擎：复古 CRT 电脑界面（crt）
+# 2026-10-12 重写。此前本文件内容实为「黑白针管笔」，与文件名、与
+# references/image-style-routing.md 的「复古 CRT 电脑界面」路由都对不上——
+# 现按 TaiT-tt/tait-crt-interface-skill（522⭐）的措辞炼化为真正的 CRT 界面引擎；
+# 原针管笔内容移到 07-pen-line.yaml。
 name: "crt"
 
-description: "黑白针管笔线稿风：细腻线条、疏密对比、无彩色，适合文艺/深度/黑白摄影感文章"
+description: "复古 CRT 电脑界面：1980s 位图编辑插画 + 硬方像素 + 扫描线 + 早期 Macintosh/Minitel 式悬浮视窗，适合科技怀旧/极客/游戏/数码回忆"
 
+# ── 色彩引擎 ──
+# 每个 prompt 只选一组色卡，禁止卡外颜色；不用渐变、柔和发光、抗锯齿、半透明。
 color:
-  base: "纯白纸底，黑白灰阶，无彩色"
-  accents: ["无（纯黑白）"]
-  ink: "针管笔墨（细线深黑 #1a1a1a），灰阶层次"
-  forbidden: ["color", "saturated", "watercolor", "pastel", "gradient", "3D render", "neon", "photo"]
+  base: "色板绑定的平涂面（一图一卡，禁卡外颜色 / 渐变 / 中间灰 / 半透明）"
+  accents: ["经典 #dee4e0 #2e382d", "粉黛 #f2d1d7 #7a3f43", "极客01 #f2fcf6 #485446 #111e16 #13f81f", "极客02 #e8e5df #2ca770 #0d3d2d #3e6a9e", "复古01 #efca54 #5d9f58 #e870a1 #bbb8a5 #49473c", "复古02 #e5e2be #ef8a45 #317e50 #8e6442 #35342f", "游戏01 #22e6da #fabf37 #e90cbe #2a4ac5 #1d2c6b", "游戏02 #e7f5fe #7bd699 #3bc4c4 #c97979 #29383a"]
+  ink: "视窗标题栏、位图字形（5x7 / 6x8 / 7x9）、图标、光标共用同一套像素格的深色"
+  forbidden: ["gradient", "soft glow", "antialiasing", "translucent", "alpha", "3D render", "glassmorphism", "modern card UI", "contemporary icons", "game HUD", "photorealistic", "watercolor", "brush stroke"]
 
+# ── 纹理引擎 ──
 texture:
-  paper: ["smooth white paper", "fine art paper"]
-  effects: ["fine pen lines", "hatching", "cross-hatching", "stippling", "line weight variation", "dense linework"]
+  paper: ["Minitel-style flat field", "early-Macintosh 1-bit desktop field"]
+  effects: ["dense palette-bound scanlines", "hard square pixel lattice", "one-cell misregistration", "short vertical persistence", "sparse noise", "hard-cell bloom"]
 
+# ── 排版引擎 ──
 typography:
-  default: "无文字"
-  max_title: "10字（仅用户要求时，手写细线字）"
-  font: "handwritten thin-line"
+  default: "视窗内位图字形（5x7 / 6x8 / 7x9），中文最多 10 字"
+  max_title: "10字"
+  font: "bitmap glyph 位图字"
 
+# ── 规避清单 ──
 layout:
-  hard: ["彩色", "水彩晕染", "高饱和", "渐变", "3D", "霓虹", "照片写实", "商业插画", "可爱卡通"]
-  soft: ["thick brush strokes", "messy scribble", "color blocks"]
+  hard: ["彩色渐变", "柔和发光", "玻璃拟态", "3D", "现代卡片 UI", "当代图标", "游戏 HUD", "照片写实", "水彩", "笔触", "抗锯齿"]
+  soft: ["gradient", "drop shadow", "blur", "rounded corner"]
 
 # ── 视觉锚（可选）──
 # 本引擎的风格锚图，路径相对 examples/image-engines/anchors/。
