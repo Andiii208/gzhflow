@@ -8,6 +8,64 @@
 
 - DSH 插件打包：根目录 `package.json`（声明 `dsh.bundle`）+ `cordis.patch.yml` + `dsh-preset/tools/gzhflow-skill.mjs`（bundled skill provider），支持 `dsh plugin add https://github.com/Andiii208/gzhflow` 一键安装（全局注册 7 个 `gzhflow_*` 工具并随包携带 `gzhflow` skill）
 
+## [0.2.0] - 2026-10-12
+
+本版把系统从「流水线」改成「飞轮」：单篇生产照旧，底下新增四个持续沉淀的库，
+加一个跨会话状态机，质检门规则整体换成有语料实测依据的一套。
+
+### Added
+
+- **四库**：`assets/inbox.md`（输入收件箱，日常「记一笔」喂）、`assets/voice-samples/`（范文锚，
+  你自己旧稿切的 300 字段落）、`assets/voice.md`（风格档案）、`assets/lessons.md`（教训库，
+  15 条防坑总表）、`assets/log.md`（发文日志）
+- **`state.md` 跨会话状态机**：任何 Agent 任何会话先读它，记录当前进度与待办，
+  解决多 Agent 切换时上下文断裂、重复提问的问题
+- **阶段⑦ 复盘**：`prompts/07-review.md`。每篇发完记一行，每 5 篇回写四库，
+  让第 10 篇比第 1 篇聪明
+- **`references/INDEX.md`**：按阶段路由 38 份方法论。实测此前 17 份全仓只有一个入链
+  且来自历史文档，等于跑流程时读不到
+- `references/seed-inbox-2026-10-12.md`：收件箱首批种子素材（反挖自长期记忆，
+  每条标注需用户确认，含"不得编造"的硬规矩）
+- `prompts/03-deai.md` 新增：模式选择（自家稿 / 白名单）、三条硬边界
+  （信息守恒 / 最小改动 / 结构不动）、③c 分视角评审
+
+### Changed
+
+- **质检门规则整体重写**，依据 `larashero3-dotcom/lieflat-less-ai-tone`（MIT）的对照语料研究
+  ——629 篇文章 283 万字，5 个模型各 60 篇对人类 329 篇，26 项候选特征逐项算频率比 R：
+  - 删除：句长变异系数 CV<0.3（实测 R=0.87 无区分力）、句内同构排比（R=0.61，
+    人类用得更多）、比喻/隐喻整体（R=0.42，人类是 AI 的 2.4 倍）
+  - 冒号：从一刀切 FAIL 改为只查提示性冒号（R=3.8）与空转列表冒号（R=9.4）。
+    此前「时间：2024年秋天」这类正常中文被判 3 处 FAIL，属纯误杀
+  - 破折号：改为按模型阈值判。模型间极差 40 倍（DeepSeek 5.16 次/千字、Claude 4.25、
+    Kimi 2.32、Gemini 0.51、GPT 只有 0.11，人类 0.80），新增 `--model` 参数
+  - 三连同构排比 → 相邻句结构同构（R=2.0）；隐喻簇 → 拟人化喻体（R=7.3）
+  - 新增检测：**段首零回指评论（R=4.4，全场最强，此前完全空白）**、顿号并列过密（R=1.8）、
+    序数词小标题（R=3.1）、译文句式 5 项（R=2.6~5.3）、数字密度反向提示（人类是 AI 的 2.8 倍）
+  - 保留并标注依据：翻案句（R=3.4）、起首语（R=3.2）、模型路标、黑话
+- **两个 `validate_gzh_html.py` 合并为一份**。此前 `scripts/` 版（111 行）缺 class / id /
+  @media / grid / var() / 外部字体等 13 项 CSS 红线，而 README、quickstart、CI、dsh-preset
+  全指向它——照着 SKILL.md 装出来的 HTML 可能带着 class 和 @media 就过了校验。
+  真正实现落在 `scripts/validate_gzh_html.py`，`skills/gzh-design/scripts/` 那个路径改为转发
+- **阶段① 从「提问」改为「先收集再提问」**：先翻收件箱和本轮对话存量，缺什么才问，只问一轮。
+  提问从默认动作降级为兜底动作
+- **阶段② 动笔前必读范文锚**，与 `assets/voice.md` 并用
+- `config/themes.example.yaml` 补齐到 6 套主题并指向 `theme-index.md` 为权威来源
+  （此前只登记 2 套，而 `theme-index.md` 有 6 套）
+- 版本号 0.1.0 → 0.2.0
+
+### Fixed
+
+- `scripts/validate_gzh_html.py` 的 `ERRORS` / `WARNINGS` 原是模块级全局变量且从不重置，
+  同一进程内重复调用会累积结果
+- CI 冒烟用例 `<section><p><span>你好</span></p></section>` 在新校验器下会失败
+  （无 `<span leaf>` 即 ERROR），已改为合规写法，并补三条反向用例
+  （模型路标必须失败 / class 红线必须失败 / 交叉嵌套必须失败）
+
+### Removed
+
+- 句长变异系数（CV）、句内同构排比、比喻/隐喻簇三项检测规则，见 Changed
+
 ## [0.1.0] - 2026-08-22
 
 ### Added（首个版本）

@@ -1,6 +1,6 @@
 {
   "name": "gzhflow",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Six-stage WeChat Official Account content-publishing workflow with quality-gate tools and a bundled skill, installable as a DeepSeek Harness (DSH) plugin",
   "license": "MIT",
   "type": "module",
