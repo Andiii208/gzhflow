@@ -1,18 +1,25 @@
 # gzhflow 排版主题路由表配置模板
-# 用法：复制为 config/themes.yaml。排版阶段（⑤）据文风/话题选主题，再用 md2wechat.py 渲染。
+# 用法：复制为 config/themes.yaml。排版阶段（⑤）据话题选主题，再按组件库装配。
 
-# default_theme: 匹配不到时的兜底主题
+# default_theme: 匹配不到任何关键词时的兜底主题
 default_theme: "zen"
 
-# 主题实际定义（色值/字体/组件样式）在 examples/themes/*.yaml
-# 这里只做「文风/话题 → 主题名」的路由
+# 主题的权威定义在 skills/gzh-design/references/theme-index.md（单一来源），
+# 每套主题的组件库是同目录下的 theme-{标识}.md。
+# examples/themes/ 下那两套 yaml 是给 md2wechat.py 轻量转换用的早期样本，
+# 不代表全部主题——真要自定义主题，改 theme-index.md 登记并新增 theme-*.md。
 routing:
-  - topic_keywords: ["日常", "随笔", "生活", "情感"]
-    theme: "zen"            # 留白禅意
-  - topic_keywords: ["教程", "干货", "盘点", "工具", "知识"]
-    theme: "minimal"        # 极简理性
-  - topic_keywords: ["观点", "深度", "分析", "思考"]
-    theme: "zen"
+  - topic_keywords: ["教程", "清单", "盘点", "干货", "工具", "知识"]
+    theme: "moyu-green"        # 摸鱼绿：卡片丰富、信息密度高，默认推荐
+  - topic_keywords: ["观点", "深度", "分析", "思考", "力量感"]
+    theme: "red-white"         # 红白：经典编辑风，编号章节 + 引言卡 + 签名区
+  - topic_keywords: ["科技", "设计", "专业", "评论", "品牌"]
+    theme: "graphite-minimal"  # 石墨极简：全灰阶，留白理性
+  - topic_keywords: ["日常", "随笔", "生活", "情感", "禅意", "冥想"]
+    theme: "zen"               # 留白禅意：呼吸感最强
+  - topic_keywords: ["测评", "对比", "评测", "创意"]
+    theme: "moyu-ticket"       # 摸鱼票据：票据视觉隐喻，星级评分 + 硬阴影卡片
+  - topic_keywords: ["内刊", "案例", "复盘", "说明文档", "系统"]
+    theme: "olive-journal"     # 橄榄手记：编辑部内刊质感，信息密度偏高
 
-# 你可以在 examples/themes/ 里自定义更多主题（复制 01-zen-whitespace.yaml 改色值），
-# 然后在这里登记路由。
+# 用户指定主题时直接用指定值；无指定时按上表匹配，全自动模式自动选并说明理由。

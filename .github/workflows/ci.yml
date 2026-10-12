@@ -43,16 +43,28 @@ jobs:
           python -m py_compile scripts/check_image_prompt.py
           python -m py_compile scripts/md2wechat.py
           python -m py_compile scripts/validate_gzh_html.py
+          python -m py_compile skills/gzh-design/scripts/validate_gzh_html.py
           python -m py_compile scripts/crop_image.py
           python -m py_compile scripts/generate_image.py
           python -m py_compile scripts/publish_draft.py
       - name: 去 AI 味机器门冒烟（干净文本通过）
         run: |
           python scripts/ai_flavor_score.py --text "这是一个普通的句子，没有破折号也没有黑话。" > /dev/null
+      - name: 去 AI 味机器门冒烟（模型路标必须失败）
+        run: |
+          ! python scripts/ai_flavor_score.py --text "总的来说，这件事值得注意。" > /dev/null
+      - name: 去 AI 味机器门冒烟（冒号不再误杀正常中文）
+        run: |
+          python scripts/ai_flavor_score.py --text "时间：2024年秋天。结论：这件事没法两全。" > /dev/null
       - name: 配图 prompt 质检门冒烟（PASS 态）
         run: |
           echo "cold-pressed paper, brush stroke, 晕染, 16:9" | python scripts/check_image_prompt.py > /dev/null
-      - name: HTML 校验冒烟（平衡 HTML 通过）
+      - name: HTML 校验冒烟（合规 HTML 通过）
         run: |
-          printf '<section><p><span>你好</span></p></section>' | python scripts/validate_gzh_html.py --stdin > /dev/null 2>&1
-          echo "smoke test PASS"
+          printf '<section><p><span leaf="">你好</span></p></section>' | python scripts/validate_gzh_html.py --stdin
+      - name: HTML 校验冒烟（class 红线必须失败）
+        run: |
+          ! printf '<section class="x"><p><span leaf="">你好</span></p></section>' | python scripts/validate_gzh_html.py --stdin
+      - name: HTML 校验冒烟（交叉嵌套必须失败）
+        run: |
+          ! printf '<section><p><span leaf="">你好</span></section></p>' | python scripts/validate_gzh_html.py --stdin
