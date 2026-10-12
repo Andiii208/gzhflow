@@ -7,14 +7,20 @@ default_theme: "zen"
 # 主题的权威定义在 skills/gzh-design/references/theme-index.md（单一来源）：
 #   - skills/gzh-design/references/theme-{标识}.md = 组件库（手工装配用，含引言卡/章节卡/签名区等完整组件）
 #   - examples/themes/*.yaml = 同色值的轻量主题（scripts/md2wechat.py 自动渲染用）
-# 两边色值必须一致。改主题先改 theme-index.md，再同步 yaml（2026-10-12 补齐到 6 套 + minimal 示例）。
+# 两边色值必须一致。改主题先改 theme-index.md，再同步 yaml（2026-10-12 补齐到 10 套）。
 routing:
   - topic_keywords: ["教程", "清单", "盘点", "干货", "工具", "知识"]
     theme: "moyu-green"        # 摸鱼绿：卡片丰富、信息密度高，默认推荐
   - topic_keywords: ["观点", "深度", "分析", "思考", "力量感"]
     theme: "red-white"         # 红白：经典编辑风，编号章节 + 引言卡 + 签名区
+  - topic_keywords: ["思辨", "评论", "争鸣", "随笔", "专栏"]
+    theme: "newyorker-editorial"  # 纽约客编辑风：衬线标题 + 单色砖橙 + 细线 + 大留白
   - topic_keywords: ["科技", "设计", "专业", "评论", "品牌"]
     theme: "graphite-minimal"  # 石墨极简：全灰阶，留白理性
+  - topic_keywords: ["产品", "设计感", "技术解读", "冷静", "理性叙事"]
+    theme: "mist-blue"         # 雾蓝：浅雾蓝底，主题库唯一冷色系
+  - topic_keywords: ["数码", "效率", "工具体验", "上手", "体验"]
+    theme: "sspai"             # 少数派：暖白底 + 砖红点缀
   - topic_keywords: ["日常", "随笔", "生活", "情感", "禅意", "冥想"]
     theme: "zen"               # 留白禅意：呼吸感最强
   - topic_keywords: ["测评", "对比", "评测", "创意"]

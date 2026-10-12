@@ -1,0 +1,24 @@
+# 排版主题：纽约客编辑风（New Yorker Editorial）
+# 2026-10-12 建（v5B A5）。衬线标题 + 单色砖橙点缀 + 细线分隔 + 大留白。
+# 与「观点/深度随笔」气质最配；配图侧搭 examples/image-engines/06-crt.yaml（黑白线稿）。
+name: "newyorker-editorial"
+description: "纽约客编辑风：衬线标题、单色砖橙点缀、细线分隔、大留白，适合思辨观点/评论/深度随笔"
+
+colors:
+  bg: "#ffffff"
+  text: "#1f1d1a"          # 暖近黑，不用纯黑
+  accent: "#C1440E"        # 砖橙，全文唯一彩色（点缀用，克制）
+  quote_bg: "#f7f4f0"
+  underline: "#E3C4B0"
+
+fonts:
+  body: "'PingFang SC', 'Hiragino Sans GB', 'Noto Sans CJK SC', sans-serif"
+  heading: "'Songti SC', 'SimSun', 'STSong', 'Noto Serif CJK SC', serif"
+
+layout:
+  body_size: "16px"
+  line_height: "1.85"
+  paragraph_margin: "0 0 1.1em"
+  side_margin: "14px"
+
+underline_css: "border-bottom:1.5px solid #E3C4B0;font-weight:600;"

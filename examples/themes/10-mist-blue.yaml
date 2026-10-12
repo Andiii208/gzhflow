@@ -1,0 +1,24 @@
+# 排版主题：雾蓝（Mist Blue）
+# 2026-10-12 建（v5B A5）。色值取自 isjiamu/gzh-design-skill 的 archive/themes-v1/theme-mist-blue.md。
+# 补齐主题库缺的蓝色系——此前 7 套主题全是绿/灰/红/墨黑，没有一套冷色。
+name: "mist-blue"
+description: "雾蓝：浅雾蓝底 + 蓝灰正文，安静通透，适合设计/产品/技术解读与冷静叙事"
+
+colors:
+  bg: "#F0F5F8"            # 浅蓝底（非白底，是这套的辨识点）
+  text: "#5A6B74"          # 中蓝灰
+  accent: "#7C9EB2"        # 雾霾蓝
+  quote_bg: "#ffffff"      # 引用用白卡，在浅蓝底上浮起
+  underline: "#B8CDD9"
+
+fonts:
+  body: "'PingFang SC', 'Hiragino Sans GB', 'Noto Sans CJK SC', sans-serif"
+  heading: "'PingFang SC', 'Hiragino Sans GB', sans-serif"
+
+layout:
+  body_size: "15px"
+  line_height: "1.85"
+  paragraph_margin: "0 0 1em"
+  side_margin: "12px"
+
+underline_css: "border-bottom:2px solid #B8CDD9;font-weight:600;"

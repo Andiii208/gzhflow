@@ -21,7 +21,7 @@
 | layout.* | 字号/行距/段距/页边距 | 正文 15-16px，行距 1.7-1.8 |
 | underline_css（可选） | 覆盖下划线完整 CSS | 各主题线宽/字重不同时用（如禅意风 1.5px + 500） |
 
-## 可用主题（2026-10-12 补齐到 6 套 + minimal 示例）
+## 可用主题（2026-10-12 补齐到 10 套）
 
 | 文件 | 主题名 | 适合 |
 |---|---|---|
@@ -32,6 +32,11 @@
 | `05-graphite-minimal.yaml` | `graphite-minimal` | 设计/科技评论/专业观点（全灰阶） |
 | `06-moyu-ticket.yaml` | `moyu-ticket` | 测评/工具对比（票据隐喻） |
 | `07-olive-journal.yaml` | `olive-journal` | 内刊手记/深度评测/案例复盘（暖纸底） |
+| `08-newyorker-editorial.yaml` | `newyorker-editorial` | 思辨观点/评论/深度随笔（衬线标题 + 单色砖橙 + 大留白；配图搭黑白线稿引擎） |
+| `09-sspai.yaml` | `sspai` | 数码生活/效率工具/产品体验（暖白底 + 砖红点缀） |
+| `10-mist-blue.yaml` | `mist-blue` | 设计/产品/技术解读/冷静叙事（浅雾蓝底，主题库唯一冷色系） |
+
+> 后三套（08–10）有轻量 yaml、暂无独立组件库：`--enhance` 自动路径完整可用，手工装配时沿用同色系主题的组件库即可。
 
 ## 用法
 

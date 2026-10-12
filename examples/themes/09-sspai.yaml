@@ -1,0 +1,23 @@
+# 排版主题：少数派（sspai）
+# 2026-10-12 建（v5B A5）。色值取自 imraywang/wewrite 的 themes/sspai.yaml（MIT）。
+name: "sspai"
+description: "少数派：暖白底 + 砖红点缀，清爽克制，适合数码生活/效率工具/产品体验"
+
+colors:
+  bg: "#fafaf7"            # 暖白，比纯白柔和
+  text: "#333333"
+  accent: "#c7372f"        # 砖红（少数派标志色）
+  quote_bg: "#fdf5f4"
+  underline: "#F0C9C6"
+
+fonts:
+  body: "'PingFang SC', 'Microsoft YaHei', 'Noto Sans CJK SC', sans-serif"
+  heading: "'PingFang SC', 'Microsoft YaHei', sans-serif"
+
+layout:
+  body_size: "16px"
+  line_height: "1.85"
+  paragraph_margin: "0 0 1.05em"
+  side_margin: "12px"
+
+underline_css: "border-bottom:2px solid #F0C9C6;font-weight:600;"

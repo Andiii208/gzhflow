@@ -14,6 +14,14 @@
 | 留白禅意风 | `#4A5D52` 墨绿 | 禅意冥想、极简生活、深度随笔、艺术留白（呼吸感最强） | `references/theme-zen-whitespace.md` | `border-bottom:1.5px solid #B5C8BC;font-weight:500;` |
 | 摸鱼票据风 | `#059669` emerald | 测评、工具对比、创意评测（票据/门票视觉隐喻，星级评分+编号+硬阴影卡片） | `references/theme-moyu-ticket.md` | `border-bottom:2px solid #A7F3D0;font-weight:600;` |
 | 橄榄手记 | `#1e1f23` 墨黑（配橙 `#ed7b2f`） | 内刊手记、深度评测、案例复盘、系统性说明文档（编辑部内刊质感，分节形式多样，信息密度偏高） | `references/theme-olive-journal.md` | `border-bottom:2px solid #ed7b2f;font-weight:600;` |
+| 纽约客编辑风 | `#C1440E` 砖橙 | 思辨观点、评论、深度随笔（衬线标题 + 单色点缀 + 细线 + 大留白；配图搭黑白线稿引擎） | （自动路径）`examples/themes/08-newyorker-editorial.yaml` | `border-bottom:1.5px solid #E3C4B0;font-weight:600;` |
+| 少数派 | `#c7372f` 砖红 | 数码生活、效率工具、产品体验（暖白底 + 砖红点缀，清爽克制） | （自动路径）`examples/themes/09-sspai.yaml` | `border-bottom:2px solid #F0C9C6;font-weight:600;` |
+| 雾蓝 | `#7C9EB2` 雾霾蓝 | 设计、产品、技术解读、冷静叙事（浅雾蓝底 + 蓝灰正文，主题库唯一冷色系） | （自动路径）`examples/themes/10-mist-blue.yaml` | `border-bottom:2px solid #B8CDD9;font-weight:600;` |
+
+> **两种主题资产**：带 `references/theme-{标识}.md` 的既有**组件库**（手工装配用，含引言卡/章节卡/签名区等完整组件），
+> 也有 `examples/themes/{标识}.yaml` 轻量版（`scripts/md2wechat.py --enhance` 自动渲染用）。
+> 标「（自动路径）」的三套目前只有轻量版——自动路径完整可用，手工装配时沿用同色系主题的组件库即可，
+> 组件库可后补（补法见「新主题登记流程」）。
 
 ## 选择建议
 

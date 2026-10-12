@@ -42,6 +42,14 @@
 - **C1 学习我的修改**：`scripts/learned_edits.py`（difflib 比对机器稿与手改稿，
   `--kind` 七类、`--append` 结构化落盘；只记录不回写）+ `assets/learned-edits.md` 骨架；
   接线 `prompts/07-review.md` 与 SKILL.md ⑦
+- **A5 主题库扩容 7→10 套**：新增 `newyorker-editorial`（纽约客编辑风：衬线标题 +
+  单色砖橙点缀 + 细线 + 大留白，配「观点/思辨」）、`sspai`（少数派：暖白底 + 砖红点缀）、
+  `mist-blue`（雾蓝：浅雾蓝底，**主题库此前没有一套冷色系**）。登记进 `theme-index.md`
+  单一来源 + `config/themes.example.yaml` 路由 + `examples/themes/README.md`
+  > 计划原列候选 `mono-black` / `warm-editorial` 未采纳：`mono-black` 与已有
+  > `graphite-minimal` 同属全灰阶，`warm-editorial` 的琥珀橙与 `olive-journal` 的橙撞色；
+  > 改选 `mist-blue` 是因为蓝是真空缺。若你更想要原来的两套，说一声换回来即可。
+  > 另：纽约客的「线稿」那半不必新建引擎——`examples/image-engines/06-crt.yaml` 已是黑白针管笔。
 
 ### Changed
 
