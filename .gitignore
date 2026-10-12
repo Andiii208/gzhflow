@@ -56,3 +56,5 @@ assets/log.md
 references/seed-inbox-*.md
 assets/voice-samples/*
 !assets/voice-samples/README.md
+assets/baseline/
+assets/baseline.md
