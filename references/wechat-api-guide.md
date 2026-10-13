@@ -65,7 +65,7 @@ python scripts/publish_draft.py <排版.html> --title "标题" --author "作者"
 - **草稿箱堆积**：每次推新草稿不自动删旧 → 定期 draft/batchget + draft/delete 清理
 - **用户手动改过草稿后重推**：先 draft/batchget（no_content=0）拉取**用户版本** HTML，在其上做局部替换再推送——不要用本地旧版直接覆盖，否则用户修改全丢
 - **GIF 正文图**：wechat-api 的 HTML 输入会把 gif 转静态帧 → 需先替换为动图直传（高级用法，个人号一般用不到）
-- **封面必须提供**：无 `--cover` 报错；图片在子目录要传 `./assets/cover.jpg`（裸文件名报 Image not found）
+- **封面必须提供**：无 `--cover` 报错；图片在子目录要传 `./assets/cover.jpg`（裸文件名报 Image not found）。`--no-cover` 参数已废弃（draft/add 强制 thumb_media_id，无封面报 40007，2026-10-13 实测）
 - **图片格式**：PIL 存 JPEG 内容命名 .png → 报 `Format mismatch`。封面/配图按实际格式命名（统一 .jpg）
 - **HTML 输入**：接受 `<section>` 纯片段，正文 `<img>` 自动上传并重写为 https URL；元数据取 CLI 参数或同目录同名 .md 的 frontmatter
 - **正文图片必须本地相对路径**（与 HTML 同目录）——远程非 mmbiz URL 上传行为不确定

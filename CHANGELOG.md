@@ -101,6 +101,14 @@
   抗锯齿/半透明）、扫描线 + 硬方像素格 + 一格错位 + 短余辉 + 硬边辉光、外圈 10% 桶形畸变。
   原针管笔内容移至 `examples/image-engines/07-pen-line.yaml`（引擎数 6 → 7）
 
+### Fixed
+
+- **修 `publish_draft.py` 的 `--no-cover` 死路**：draft/add 接口强制要求封面
+  thumb_media_id，不带封面必然返回 40007 invalid media_id（2026-10-13 个人订阅号实测）。
+  `--no-cover` 改为提前报错退出（exit 2）并标注废弃；封面上传失败不再降级推送正文——
+  没有 thumb_media_id 的草稿同样会被 draft/add 拒掉，早失败早明确；
+  同时修正「个人订阅号无 add_material 权限」的过时注释，该接口实测可用
+
 ## [0.2.0] - 2026-10-12
 
 本版把系统从「流水线」改成「飞轮」：单篇生产照旧，底下新增四个持续沉淀的库，

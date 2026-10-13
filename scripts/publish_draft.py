@@ -206,11 +206,16 @@ def main():
     ap.add_argument("--author", help="作者（默认 config 或 frontmatter）")
     ap.add_argument("--summary", help="摘要（默认截取正文前 120 字）")
     ap.add_argument("--cover", help="封面图路径（2.35:1 ≈ 900x383；缺省读 frontmatter 的 coverImage）")
-    ap.add_argument("--no-cover", action="store_true", help="不设置封面（个人订阅号 API 无法传封面，稍后在公众号助手 App 手动补）")
+    ap.add_argument("--no-cover", action="store_true", help="已废弃：draft/add 强制要求封面 thumb_media_id，无封面必报 40007")
     ap.add_argument("--app-id", help="AppID（覆盖环境变量）")
     ap.add_argument("--app-secret", help="AppSecret（覆盖环境变量）")
     ap.add_argument("--dry-run", action="store_true", help="验证全链路但不推送（取 token 前返回）")
     args = ap.parse_args()
+
+    if args.no_cover:
+        print("❌ --no-cover 已废弃：draft/add 接口强制要求封面 thumb_media_id，"
+              "不带封面必然返回 40007 invalid media_id。请用 --cover 指定封面图", file=sys.stderr)
+        sys.exit(2)
 
     html_path = Path(args.html)
     if not html_path.exists():
@@ -229,7 +234,7 @@ def main():
         (p for p in (html_path.with_suffix(".md"), html_path.parent / "draft.md") if p.exists()),
         None,
     )
-    if md_side and not args.no_cover:
+    if md_side:
         md_text = md_side.read_text(encoding="utf-8")
         fm = re.search(r"^---\s*\n(.*?)\n---", md_text, re.S)
         if fm:
@@ -250,10 +255,11 @@ def main():
                 elif key == "coverImage" and cover is None:
                     cover = html_path.parent / val
 
-    if cover is None and not args.no_cover:
-        print("❌ 未指定封面：请用 --cover，或在 frontmatter 写 coverImage，或加 --no-cover", file=sys.stderr)
+    if cover is None:
+        print("❌ 未指定封面：请用 --cover，或在 frontmatter 写 coverImage"
+              "（draft/add 强制要求封面 thumb_media_id，无封面报 40007）", file=sys.stderr)
         sys.exit(2)
-    if cover is not None and not cover.exists():
+    if not cover.exists():
         print(f"❌ 封面不存在: {cover}", file=sys.stderr)
         sys.exit(2)
 
@@ -279,15 +285,10 @@ def main():
     if html_remote != html_text:
         print("✅ 正文图片已上传并重写为 https URL")
 
-    # 上传封面（个人订阅号 thumb_media_id 需永久素材、无 add_material 权限：
-    # 40007/404。封面交给用户到公众号助手 App 手动设置，正文完整推送即可）
-    cover_media_id = None
-    if cover is not None:
-        try:
-            cover_media_id = upload_cover(token, cover)
-            print(f"✅ 封面已上传: {cover_media_id}")
-        except SystemExit:
-            print("⚠️ 封面上传失败（个人订阅号限制），继续推送正文，封面请在公众号助手 App 手动设置", file=sys.stderr)
+    # 上传封面（material/add_material 永久素材，个人订阅号实测可用，2026-10-13；
+    # 上传失败直接退出——没有 thumb_media_id 的草稿 draft/add 也会被拒 40007）
+    cover_media_id = upload_cover(token, cover)
+    print(f"✅ 封面已上传: {cover_media_id}")
 
     # 摘要兜底：截取正文前 120 字
     if not summary:
