@@ -64,6 +64,13 @@
 
 ### Changed
 
+- **配图选图设计补三处漏**（2026-10-13）：`references/image-style-routing.md` 图源策略表新增
+  「新闻/热点事件」行（**真实图优先**：官方 logo/界面截图/公告头图/社区同人图，AI 只补
+  无现实本体的抽象概念位；先例 DeepSeek 事件文），「观点/思辨」行拆分（纯内心观点 AI 为主 /
+  挂在真实事件上的按三问走真实图）；`references/inline-illustration-workflow.md` 补 Step 0
+  图源三问入口（此前从写 prompt 直奔生成，整个绕过选图设计）+ Windows 路径警告头；
+  `prompts/00-run.md` Run 总览流程图 ④ 补「图源三问」步、决策日志补图源分轨记录；
+  `references/INDEX.md` 补登记 `inline-illustration-workflow` 为 Windows 残留
 - **修 `md2wechat.py` 不处理 `==高亮==` 的 bug**：此前这类标记被原样输出进公众号正文
   （样例文章里两处 `==能力商品==` 实测残留）。这是 gzh-design 的「关键词下划线」核心特色，
   现已实现，并支持 `++下划线++` / `~~荧光笔~~` / `<u>文字</u>`

@@ -113,3 +113,4 @@
 - `draft-verification`（满篇 `C:/Users/26895/...` + MSYS 路径坑）
 - `setup-notes`（`~/AppData/Local/hermes/skills/`，已完全过时）
 - `wechat-ecosystem-projects-2026-08` L49（Windows cmd 代码页乱码的坑，Mac 上不成立）
+- `inline-illustration-workflow`（生成/发布步骤为 `D:/tools/hermes/...` 路径；文件头已加 Mac 警告，2026-10-13 补登记）
