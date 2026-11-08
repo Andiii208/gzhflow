@@ -1962,6 +1962,7 @@ body[data-ds-dark-theme] .gzw-session.bound .gzw-avatar{color:#04231e}
       const [followOn, setFollowOn] = React.useState(true)
       const [followMode, setFollowMode] = React.useState('off')
       const [traceFilter, setTraceFilter] = React.useState('all')
+      const [traceSessionId, setTraceSessionId] = React.useState('')
       const [gate, setGate] = React.useState(null)
       const [gateBusy, setGateBusy] = React.useState(false)
       const [layoutTheme, setLayoutTheme] = React.useState('zen')
@@ -2284,19 +2285,21 @@ body[data-ds-dark-theme] .gzw-session.bound .gzw-avatar{color:#04231e}
       }, [])
 
       React.useEffect(() => {
-        if (binding?.sessionId !== undefined && binding?.sessionId !== '') {
-          loadTrace(binding.sessionId)
+        // 看历史会话时用 override，否则看绑定会话
+        const target = traceSessionId !== '' ? traceSessionId : binding?.sessionId ?? readSessionId
+        if (target !== undefined && target !== '') {
+          loadTrace(target)
         } else {
           setEvents([])
         }
-      }, [binding?.sessionId, loadTrace])
+      }, [binding?.sessionId, traceSessionId, readSessionId, loadTrace])
 
       React.useEffect(() => {
         if (article !== null && stageNo === 0) setStageNo(article.defaultStage || 2)
       }, [article, stageNo])
 
       React.useEffect(() => {
-        if (!followOn || binding?.sessionId === undefined || binding.sessionId === '') {
+        if (!followOn || traceSessionId !== '' || binding?.sessionId === undefined || binding.sessionId === '') {
           setFollowMode('off')
           return
         }
@@ -2331,7 +2334,7 @@ body[data-ds-dark-theme] .gzw-session.bound .gzw-avatar{color:#04231e}
             controller.abort()
           } catch {}
         }
-      }, [followOn, binding?.sessionId, remote, log])
+      }, [followOn, binding?.sessionId, traceSessionId, remote, log])
 
       React.useEffect(() => {
         if (!followOn || followMode !== 'poll' || binding?.sessionId === undefined || binding.sessionId === '') return
@@ -3796,12 +3799,22 @@ body[data-ds-dark-theme] .gzw-session.bound .gzw-avatar{color:#04231e}
                 'div',
                 { className: 'gzw-card-head-main' },
                 h('div', { className: 'gzw-card-title' }, h('span', { className: 'gzw-card-ico' }, h(Icon, { name: 'history', size: 15 })), '操作时间线'),
-                h('div', { className: 'gzw-card-sub' }, binding === null ? '未绑定专用会话，轨迹不可用' : '会话 ' + shortId(binding.sessionId) + '　·　' + (followMode === 'live' ? '实时跟随中' : followMode === 'poll' ? '2 秒轮询' : '已暂停')),
+                h(
+                  'div',
+                  { className: 'gzw-card-sub' },
+                  traceSessionId !== ''
+                    ? '历史会话 ' + shortId(traceSessionId) + '　·　只读回放，不跟随'
+                    : binding === null
+                      ? '未绑定专用会话，轨迹不可用'
+                      : '会话 ' + shortId(binding.sessionId) + '　·　' + (followMode === 'live' ? '实时跟随中' : followMode === 'poll' ? '2 秒轮询' : '已暂停'),
+                ),
               ),
               h(
                 'div',
                 { className: 'gzw-card-actions' },
-                h(Btn, { size: 'sm', icon: followOn ? 'pause' : 'play', variant: 'ghost', onClick: () => setFollowOn((value) => !value) }, followOn ? '暂停跟随' : '开始跟随'),
+                traceSessionId !== ''
+                  ? h(Btn, { size: 'sm', icon: 'link', variant: 'ghost', onClick: () => setTraceSessionId('') }, '回到绑定会话')
+                  : h(Btn, { size: 'sm', icon: followOn ? 'pause' : 'play', variant: 'ghost', onClick: () => setFollowOn((value) => !value) }, followOn ? '暂停跟随' : '开始跟随'),
                 h(Btn, { size: 'sm', icon: 'refresh', variant: 'ghost', onClick: () => loadTrace(binding?.sessionId ?? readSessionId), disabled: (binding?.sessionId ?? readSessionId) === '' }, '立即刷新'),
                 h(Btn, { size: 'sm', icon: 'x', variant: 'ghost', onClick: () => cancelRun(), disabled: !bindingReady }, '停止 turn'),
               ),
@@ -3819,7 +3832,7 @@ body[data-ds-dark-theme] .gzw-session.bound .gzw-avatar{color:#04231e}
               ),
             ),
             traceError !== '' ? h('div', { className: 'gzw-error', style: { marginTop: 'var(--gzw-s3)' } }, traceError) : null,
-            binding === null
+            traceSessionId === '' && (binding === null || binding.sessionId === '')
               ? h(Empty, { icon: 'link', title: '未绑定会话', text: '绑定后这里显示该会话的实时步骤：用户消息、工具调用、审阅往返与失败。', action: h(Btn, { size: 'sm', onClick: () => setView('binding') }, '去绑定') })
               : visibleRows.length === 0
                 ? h(Empty, { icon: 'grid', title: '当前筛选下没有事件', text: stats.total === 0 ? '这个会话还没有产生可显示的步骤。' : '换个筛选，或等 Agent 继续跑。' })
@@ -3871,6 +3884,7 @@ body[data-ds-dark-theme] .gzw-session.bound .gzw-avatar{color:#04231e}
       function renderLibraries() {
         const docsByLib = {}
         for (const lib of LIBRARIES) docsByLib[lib.id] = docs[lib.path]
+        const history = candidates.slice(0, 8)
         return h(
           'div',
           { className: 'gzw-sec' },
@@ -3933,6 +3947,45 @@ body[data-ds-dark-theme] .gzw-session.bound .gzw-avatar{color:#04231e}
             }),
           ),
           renderNoteComposer(),
+          h(
+            Card,
+            { title: '历史文章', icon: 'history', sub: '工作区里的历史会话：点「看轨迹」在工作台里回放，不新建真源' },
+            history.length === 0
+              ? h(Empty, { icon: 'history', title: '这个工作区还没有别的会话', text: '每写一篇就会有一个专属会话；它们会出现在这里。' })
+              : h(
+                  'div',
+                  { className: 'gzw-arts' },
+                  ...history.map((row) => {
+                    const id = String(sessionIdOf(row) ?? '')
+                    const isBound = binding !== null && binding.sessionId === id
+                    const isViewing = traceSessionId === id
+                    return h(
+                      'div',
+                      { className: 'gzw-art' + (isViewing ? ' on' : ''), key: 'h-' + id },
+                      h('div', { className: 'gzw-avatar' }, initialOf(sessionTitleOf(row))),
+                      h(
+                        'div',
+                        { className: 'gzw-art-main' },
+                        h('div', { className: 'gzw-art-name' }, h('span', { className: 'nm' }, sessionTitleOf(row)), isBound ? h('span', { className: 'gzw-stage-pill' }, '当前绑定') : null),
+                        h('div', { className: 'gzw-art-sub' }, shortId(id) + '　' + relTime(row.updatedAt)),
+                      ),
+                      h(
+                        'div',
+                        { className: 'gzw-art-tail' },
+                        h(Btn, {
+                          size: 'sm',
+                          variant: isViewing ? 'ghost' : undefined,
+                          icon: 'history',
+                          onClick: () => {
+                            setTraceSessionId(id)
+                            setView('trace')
+                          },
+                        }, isViewing ? '正在看' : '看轨迹'),
+                      ),
+                    )
+                  }),
+                ),
+          ),
         )
       }
 
