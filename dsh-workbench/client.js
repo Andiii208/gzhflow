@@ -1991,6 +1991,13 @@ body[data-ds-dark-theme] .gzw-session.bound .gzw-avatar{color:#04231e}
       const [pushBusy, setPushBusy] = React.useState(false)
       const [pushConfirm, setPushConfirm] = React.useState(false)
       const [pushResult, setPushResult] = React.useState(null)
+      const [onboarded, setOnboarded] = React.useState(() => {
+        try {
+          return typeof localStorage !== 'undefined' && localStorage.getItem('gzw-onboarded') === '1'
+        } catch {
+          return false
+        }
+      })
       const traceEndRef = React.useRef(null)
       const autoScrollRef = React.useRef(true)
       const pendingG = React.useRef(false)
@@ -1999,6 +2006,13 @@ body[data-ds-dark-theme] .gzw-session.bound .gzw-avatar{color:#04231e}
       const log = React.useCallback((text) => {
         const line = '[' + new Date().toLocaleTimeString() + '] ' + text
         setLogs((prev) => (prev.length > 220 ? prev.slice(prev.length - 200) : prev).concat(line))
+      }, [])
+
+      const dismissOnboarding = React.useCallback(() => {
+        setOnboarded(true)
+        try {
+          localStorage.setItem('gzw-onboarded', '1')
+        } catch {}
       }, [])
 
       const showToast = React.useCallback((text) => {
@@ -2973,6 +2987,77 @@ body[data-ds-dark-theme] .gzw-session.bound .gzw-avatar{color:#04231e}
           { className: 'gzw-receipt ' + (receipt.ok ? 'ok' : 'bad') },
           h('div', { className: receipt.ok ? 'gzw-ok' : 'gzw-error' }, receipt.ok ? '审阅指令已排队（' + formatWhen(receipt.at) + '）' : '发送失败（' + formatWhen(receipt.at) + '）：' + String(receipt.error || '')),
           h('details', { className: 'gzw-details' }, h('summary', {}, '查看发送的原文'), h('pre', { className: 'gzw-log', style: { marginTop: '6px' } }, String(receipt.text || ''))),
+        )
+      }
+
+      // ---------------- 首次使用引导 ----------------
+      function renderSetupGuide() {
+        const steps = [
+          {
+            title: '1. 复制配置模板',
+            body: '把 config/*.example.yaml 复制成 config/*.yaml，填你自己的文风、主题与发布凭证。',
+            cmd: 'cp config/*.example.yaml config/',
+          },
+          {
+            title: '2. 跑一次自检',
+            body: '确认工具链、配置与密钥占位符没问题（仓库脚本，不联网）。',
+            cmd: 'python scripts/validate_repo.py',
+          },
+          {
+            title: '3. 绑定一个会话',
+            body: '在「绑定」页把这一篇绑到专属会话，通过 / 退回才会生效。',
+            cmd: null,
+          },
+        ]
+        return h(
+          Card,
+          { title: '先把工作台接上', icon: 'alert', sub: repoRoot === '' ? '还没找到 gzhflow 仓库' : stateError || '当前篇还没读到' },
+          h(
+            'div',
+            { className: 'gzw-stack' },
+            ...steps.map((step) =>
+              h(
+                'div',
+                { className: 'gzw-lib-item', key: step.title },
+                h('span', { className: 'gzw-lib-bullet' }),
+                h(
+                  'div',
+                  { className: 'gzw-lib-body' },
+                  h('div', { className: 'gzw-lib-text' }, h('b', {}, step.title), '　' + step.body),
+                  step.cmd === null
+                    ? null
+                    : h(
+                        'div',
+                        { className: 'gzw-row tight', style: { marginTop: '6px' } },
+                        h('code', { className: 'gzw-mono', style: { padding: '2px 7px', borderRadius: '5px', background: 'var(--gzw-surface-2)' } }, step.cmd),
+                        h(Btn, { size: 'sm', variant: 'ghost', icon: 'copy', onClick: () => copyText(step.cmd, '命令已复制') }, '复制'),
+                      ),
+                ),
+              ),
+            ),
+          ),
+        )
+      }
+
+      function renderOnboarding() {
+        if (onboarded) return null
+        return h(
+          Card,
+          { title: '第一次用？三十秒看懂这个面板', icon: 'book', sub: '看完就收起', actions: [h(Btn, { size: 'sm', variant: 'ghost', icon: 'check', onClick: dismissOnboarding }, '知道了')] },
+          h(
+            'div',
+            { className: 'gzw-help-grid' },
+            ...[
+              ['总览', '当前篇、七阶段进度、下一步动作、四个真指标'],
+              ['阶段', '这一阶段做什么、有什么产物、可跑的动作'],
+              ['轨迹', 'Agent 干了什么：命令、工具、审阅往返与失败'],
+              ['产物', '七阶段产物清单、产出时间线与预览'],
+              ['库', 'inbox / voice / lessons / 手改记录，只读 + 记一笔'],
+              ['绑定', '把这篇绑到专属会话，通过 / 退回才会生效'],
+            ].map((row) =>
+              h('div', { className: 'gzw-help-row', key: row[0] }, h('span', { className: 'gzw-kbd' }, row[0]), h('span', {}, row[1])),
+            ),
+          ),
         )
       }
 
@@ -4227,10 +4312,12 @@ body[data-ds-dark-theme] .gzw-session.bound .gzw-avatar{color:#04231e}
                 'div',
                 { className: 'gzw-sec' },
                 renderHero(),
+                repoRoot === '' || stateError !== '' ? renderSetupGuide() : null,
                 renderActionBar(),
                 renderKpis(),
                 renderReview(),
                 receipt === null ? null : renderReceipt(),
+                renderOnboarding(),
                 h(
                   'div',
                   { className: 'gzw-grid' },
