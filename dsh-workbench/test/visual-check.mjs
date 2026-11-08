@@ -1,5 +1,7 @@
-// Screenshot driver for the gzhflow workbench panel in the DSH web GUI.
-// Usage: node gzw-shot.mjs <outPrefix> [--tabs=总览,阶段,...] [--theme=dark|light] [--w=1600]
+// 工作台视觉自检：用 headless Chrome 打开真实 DSH GUI，逐页截图并收集控制台错误。
+// 用法：node dsh-workbench/test/visual-check.mjs /tmp/shot --tabs=总览,阶段 --theme=dark
+// 需要 DSH 正在运行（默认 http://127.0.0.1:55261，可用 DSH_URL 覆盖）。
+// 它只读本机 cookie 做临时登录，不写任何凭据。
 import { spawn, execFileSync } from 'node:child_process'
 import { rmSync, mkdirSync, writeFileSync } from 'node:fs'
 
