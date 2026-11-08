@@ -39,6 +39,10 @@ quality 省略时按 role 取 image_budget 的默认档。
     python scripts/image_batch.py --manifest gen/manifest.json --prompts-only     # 只落 prompt 文件
     python scripts/image_batch.py --manifest gen/manifest.json --backend gpt-image-2 --receipt gen/预算单.md
     python scripts/image_batch.py --manifest gen/manifest.json --engine watercolor --anchors examples/image-engines/anchors
+    python scripts/image_batch.py --manifest gen/manifest.json --plan-only --json  # 机器可读 JSON
+
+--json 给 UI/CI 用：stdout 只输出一个 JSON 对象（total/cost/trimmed/items/exit），
+人类报告改走 stderr；为保持旧 --help 逐字节不变，它不列在 --help 里。
 
 退出码: 0 = 完成（含部分失败，见报告）, 1 = 全部失败, 2 = 配置/manifest 错误, 3 = 超预算且未开 auto-trim
 """
@@ -64,9 +68,40 @@ CUT_RANK = {"inline": 0, "quote-card": 1, "share": 2, "cover": 3}
 HEX = re.compile(r"^#[0-9A-Fa-f]{6}$")
 ANCHOR_EXT = {".png", ".jpg", ".jpeg", ".webp"}
 
+# --json 时置 True：stdout 只留一个 JSON 对象，人类诊断走 stderr
+_JSON_MODE = False
+_OUT = sys.stdout   # 人类输出流；--json 时在 main 里切到 stderr
 
-def fail(msg, code=2):
+
+def emit_json(payload):
+    """stdout 只输出一个 JSON 对象（单行、ensure_ascii=False）。"""
+    print(json.dumps(payload, ensure_ascii=False))
+
+
+def _plan_payload(rows, dropped, exit_code, n=None, cost=None):
+    """计划/结果行的机器可读视图（--json）：id/role/ratio/quality/size/单价/输出。"""
+    if n is None or cost is None:
+        n, cost = totals(rows)
+    return {
+        "total": n,
+        "cost": round(cost, 4),
+        "trimmed": [r["id"] for r in dropped],
+        "items": [{"id": r["id"], "role": r["role"], "ratio": r["ratio"],
+                   "quality": r["quality"], "size": r["size"],
+                   "unitPrice": round(r["unit"], 4), "output": str(r["output"])}
+                  for r in rows],
+        "exit": exit_code,
+    }
+
+
+def fail(msg, code=2, payload=None):
     print("❌ %s" % msg, file=sys.stderr)
+    if _JSON_MODE:
+        data = {"total": 0, "cost": 0.0, "trimmed": [], "items": [],
+                "exit": code, "error": msg}
+        if payload:
+            data.update(payload)
+        emit_json(data)
     sys.exit(code)
 
 
@@ -218,20 +253,20 @@ def totals(rows):
 
 
 def print_table(rows, max_images, max_cost):
-    print("📋 生图计划（%d 张）" % len(rows))
-    print("   %-12s %-10s %-8s %-8s %-10s %8s" % ("id", "role", "ratio", "quality", "size", "单价$"))
+    print("📋 生图计划（%d 张）" % len(rows), file=_OUT)
+    print("   %-12s %-10s %-8s %-8s %-10s %8s" % ("id", "role", "ratio", "quality", "size", "单价$"), file=_OUT)
     for r in rows:
         print("   %-12s %-10s %-8s %-8s %-10s %8.4f"
-              % (r["id"], r["role"], r["ratio"], r["quality"], r["size"], r["unit"]))
+              % (r["id"], r["role"], r["ratio"], r["quality"], r["size"], r["unit"]), file=_OUT)
     n, cost = totals(rows)
     print("   ── 合计：%d 张，预估 $%.4f（上限：%s 张 / $%.4f）"
-          % (n, cost, max_images or "不限", max_cost))
+          % (n, cost, max_images or "不限", max_cost), file=_OUT)
     palettes = _dedup([" ".join(r["palette"]) for r in rows if r.get("palette")])
     if palettes:
-        print("   🎨 统一色板：%s" % " | ".join(palettes))
+        print("   🎨 统一色板：%s" % " | ".join(palettes), file=_OUT)
     n_anchor = len(rows[0].get("refs") or []) if rows else 0
     if n_anchor:
-        print("   🖼️  风格锚：每张带 %d 张参考图（走 /images/edits）" % n_anchor)
+        print("   🖼️  风格锚：每张带 %d 张参考图（走 /images/edits）" % n_anchor, file=_OUT)
     return n, cost
 
 
@@ -260,7 +295,7 @@ def write_prompts(rows):
         p.parent.mkdir(parents=True, exist_ok=True)
         p.write_text(r["prompt"], encoding="utf-8")
         out = p.parent
-    print("✅ 已写出 %d 份 prompt 文件到 %s（未调用生图接口）" % (len(rows), out))
+    print("✅ 已写出 %d 份 prompt 文件到 %s（未调用生图接口）" % (len(rows), out), file=_OUT)
 
 
 def run_one(row, backend, retry, cache):
@@ -308,10 +343,38 @@ def write_receipt(path, rows, dropped, backend, max_images, max_cost, mode):
         lines.append("| %s | %s | %s | %s | %s | %.4f | %s |"
                      % (r["id"], r["role"], r["ratio"], r["quality"], r["size"], r["unit"], r["status"]))
     Path(path).write_text("\n".join(lines) + "\n", encoding="utf-8")
-    print("🧾 预算消耗单: %s" % path)
+    print("🧾 预算消耗单: %s" % path, file=_OUT)
+
+
+def _split_json_flag(argv, value_opts=()):
+    """摘掉独立的 --json（不注册进 argparse，旧 help/usage 才能逐字节不变）。
+
+    value_opts 里是带值选项；它们的下一个 token 即使叫 --json 也当值保留。
+    "--" 之后全是位置参数，不再扫描。
+    """
+    out, found, i = [], False, 0
+    while i < len(argv):
+        arg = argv[i]
+        if arg == "--":
+            out.extend(argv[i:])
+            break
+        if arg == "--json":
+            found = True
+        else:
+            out.append(arg)
+            if arg in value_opts and i + 1 < len(argv):
+                i += 1
+                out.append(argv[i])
+        i += 1
+    return out, found
 
 
 def main():
+    global _JSON_MODE, _OUT
+    argv, json_mode = _split_json_flag(
+        sys.argv[1:],
+        {"--manifest", "--backend", "--anchors", "--engine",
+         "--max-images", "--max-cost", "--receipt"})
     ap = argparse.ArgumentParser(description="gzhflow 生图预算层")
     ap.add_argument("--manifest", required=True, help="manifest JSON 路径")
     ap.add_argument("--plan-only", action="store_true", help="只算账不出图")
@@ -323,7 +386,10 @@ def main():
     ap.add_argument("--max-images", type=int, help="覆盖张数上限")
     ap.add_argument("--max-cost", type=float, help="覆盖金额上限（美元）")
     ap.add_argument("--receipt", help="预算消耗单输出路径（默认不写，仅打印）")
-    args = ap.parse_args()
+    args = ap.parse_args(argv)
+
+    _JSON_MODE = json_mode
+    _OUT = sys.stderr if json_mode else sys.stdout
 
     mpath = Path(args.manifest)
     if not mpath.exists():
@@ -352,6 +418,12 @@ def main():
 
     if args.prompts_only:
         write_prompts(rows)
+        if json_mode:
+            payload = _plan_payload(rows, [], 0, n, cost)
+            payload["mode"] = "prompts-only"
+            payload["prompts"] = [str(r["output"].with_suffix(r["output"].suffix + ".prompt.txt"))
+                                  for r in rows]
+            emit_json(payload)
         sys.exit(0)
 
     over = (max_images and n > max_images) or (max_cost and cost > max_cost)
@@ -359,28 +431,35 @@ def main():
     if over and args.auto_trim:
         rows, dropped = trim(rows, max_images, max_cost)
         print("✂️  超预算，自动砍掉 %d 张：%s"
-              % (len(dropped), "、".join(r["id"] for r in dropped)))
+              % (len(dropped), "、".join(r["id"] for r in dropped)), file=_OUT)
         n, cost = print_table(rows, max_images, max_cost)
         over = (max_images and n > max_images) or (max_cost and cost > max_cost)
     if over:
         fail("超预算（%d 张 / $%.4f）。加 --auto-trim 自动砍次要图，或调 image_budget"
-             % (n, cost), code=3)
+             % (n, cost), code=3,
+             payload=_plan_payload(rows, dropped, 3, n, cost))
     if args.plan_only:
         if args.receipt:      # plan-only 也给一份单子，便于先看账再决定
             write_receipt(args.receipt, rows, dropped, backend, max_images, max_cost, "plan")
-        print("ℹ️  --plan-only：未调用生图接口")
+        if json_mode:
+            payload = _plan_payload(rows, dropped, 0, n, cost)
+            payload["mode"] = "plan-only"
+            if args.receipt:
+                payload["receipt"] = args.receipt
+            emit_json(payload)
+        print("ℹ️  --plan-only：未调用生图接口", file=_OUT)
         sys.exit(0)
 
     parallel = max(1, int(budget.get("parallel", 4) or 4))
     retry = max(0, int(budget.get("retry", 1) or 1))
     cache = {}
-    print("🚀 并行生成（%d 路，重试 %d 次）…" % (parallel, retry))
+    print("🚀 并行生成（%d 路，重试 %d 次）…" % (parallel, retry), file=_OUT)
     with ThreadPoolExecutor(max_workers=min(parallel, len(rows))) as pool:
         futures = {pool.submit(run_one, r, backend, retry, cache): r for r in rows}
         for fut in as_completed(futures):
             row, status = fut.result()
             row["status"] = status
-            print("   %-12s %s" % (row["id"], status))
+            print("   %-12s %s" % (row["id"], status), file=_OUT)
 
     ok = [r for r in rows if r["status"] == "成功" or r["status"].startswith("复用")]
     failed = [r for r in rows if r["status"].startswith("失败")]
@@ -389,13 +468,23 @@ def main():
         note.parent.mkdir(parents=True, exist_ok=True)
         note.write_text("prompt:\n%s\n\n错误: %s\n" % (r["prompt"], r["status"]), encoding="utf-8")
 
+    exit_code = 1 if failed and not ok else 0
+    if json_mode:
+        payload = _plan_payload(rows, dropped, exit_code, n, cost)
+        payload["mode"] = "generate"
+        for item, r in zip(payload["items"], rows):
+            item["status"] = r["status"]
+        payload["ok"] = len(ok)
+        payload["failed"] = len(failed)
+        emit_json(payload)
+
     if args.receipt:
         write_receipt(args.receipt, rows, dropped, backend, max_images, max_cost,
                       "plan+generate" if not args.plan_only else "plan")
-    print("完成：成功 %d / 失败 %d / 共 %d（预估 $%.4f）" % (len(ok), len(failed), len(rows), cost))
+    print("完成：成功 %d / 失败 %d / 共 %d（预估 $%.4f）" % (len(ok), len(failed), len(rows), cost), file=_OUT)
     if failed:
-        print("⚠️  失败的图已留 .FAILED.txt（含 prompt），Run 可继续")
-    sys.exit(1 if failed and not ok else 0)
+        print("⚠️  失败的图已留 .FAILED.txt（含 prompt），Run 可继续", file=_OUT)
+    sys.exit(exit_code)
 
 
 if __name__ == "__main__":

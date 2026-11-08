@@ -16,9 +16,14 @@
     echo "prompt内容" | python scripts/check_image_prompt.py
     python scripts/check_image_prompt.py <prompt文件>
     python scripts/check_image_prompt.py --engine crt <prompt文件>
+    python scripts/check_image_prompt.py <prompt文件> --json  # 机器可读 JSON
+
+--json 给 UI/CI 用：stdout 只输出一个 JSON 对象（verdict/reasons/warns/exit），
+人类报告改走 stderr；为保持旧 --help 逐字节不变，它不列在 --help 里。
 退出码: 0 = PASS（含 WARN，WARN 不阻断）, 1 = FAIL（硬规避或必需项缺失）, 2 = 引擎文件读不到
 """
 import argparse
+import json
 import re
 import sys
 from pathlib import Path
@@ -26,6 +31,9 @@ from pathlib import Path
 # Windows GBK 控制台兼容：强制 UTF-8 输出
 if hasattr(sys.stdout, "reconfigure"):
     sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+
+# --json 时置 True：stdout 只留一个 JSON 对象，人类诊断走 stderr
+_JSON_MODE = False
 
 ROOT = Path(__file__).resolve().parent.parent
 
@@ -85,7 +93,11 @@ def _engine_materials(spec: str):
                 hit = cand
                 break
         if hit is None:
-            print("❌ 找不到配图引擎 %r（examples/image-engines/*.yaml）" % spec, file=sys.stderr)
+            msg = "❌ 找不到配图引擎 %r（examples/image-engines/*.yaml）" % spec
+            print(msg, file=sys.stderr)
+            if _JSON_MODE:
+                print(json.dumps({"verdict": "FAIL", "reasons": [msg], "warns": [],
+                                  "exit": 2, "error": msg}, ensure_ascii=False))
             sys.exit(2)
         p = hit
     text = p.read_text(encoding="utf-8", errors="replace")
@@ -133,37 +145,79 @@ def check(text: str, engine_terms=None):
     return problems, warns
 
 
+def _split_json_flag(argv, value_opts=()):
+    """摘掉独立的 --json（不注册进 argparse，旧 help/usage 才能逐字节不变）。
+
+    value_opts 里是带值选项；它们的下一个 token 即使叫 --json 也当值保留。
+    "--" 之后全是位置参数，不再扫描。
+    """
+    out, found, i = [], False, 0
+    while i < len(argv):
+        arg = argv[i]
+        if arg == "--":
+            out.extend(argv[i:])
+            break
+        if arg == "--json":
+            found = True
+        else:
+            out.append(arg)
+            if arg in value_opts and i + 1 < len(argv):
+                i += 1
+                out.append(argv[i])
+        i += 1
+    return out, found
+
+
 def main():
+    global _JSON_MODE
+    argv, json_mode = _split_json_flag(sys.argv[1:], {"--engine"})
     ap = argparse.ArgumentParser(description="gzhflow 配图 prompt 质检门")
     ap.add_argument("path", nargs="?", help="prompt 文件路径（缺省读 stdin）")
     ap.add_argument("--engine", help="配图引擎名/路径：按其 texture.paper/effects 追加材质词")
-    args = ap.parse_args()
+    args = ap.parse_args(argv)
+
+    _JSON_MODE = json_mode
+    out = sys.stderr if json_mode else sys.stdout
 
     engine_terms = _engine_materials(args.engine) if args.engine else []
 
     if args.path:
-        text = open(args.path, encoding="utf-8").read()
+        try:
+            text = open(args.path, encoding="utf-8").read()
+        except OSError as e:
+            if not json_mode:
+                raise
+            print(json.dumps({"verdict": "FAIL", "reasons": [str(e)], "warns": [],
+                              "exit": 1, "error": str(e)}, ensure_ascii=False))
+            sys.exit(1)
     else:
         text = sys.stdin.read()
 
     problems, warns = check(text, engine_terms)
 
     if warns:
-        print("⚠️  WARN:")
+        print("⚠️  WARN:", file=out)
         for w in warns:
-            print("   ", w)
+            print("   ", w, file=out)
 
     if problems:
-        print("🔴 FAIL:")
+        print("🔴 FAIL:", file=out)
         for p in problems:
-            print("   ", p)
-        sys.exit(1)
-
-    if warns:
-        print("✅ PASS（含 WARN，不阻断，建议优化）")
+            print("   ", p, file=out)
+    elif warns:
+        print("✅ PASS（含 WARN，不阻断，建议优化）", file=out)
     else:
-        print("✅ PASS")
-    sys.exit(0)
+        print("✅ PASS", file=out)
+
+    if json_mode:
+        print(json.dumps({
+            "verdict": "FAIL" if problems else "PASS",
+            "reasons": [p.replace("[FAIL] ", "", 1) for p in problems],
+            "warns": [w.replace("[WARN] ", "", 1) for w in warns],
+            "exit": 1 if problems else 0,
+        }, ensure_ascii=False))
+
+    sys.exit(1 if problems else 0)
 
 
 if __name__ == "__main__":

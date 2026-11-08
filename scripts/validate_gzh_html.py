@@ -18,11 +18,16 @@ class / id / @media / grid 等 13 项 CSS 红线漏在外面，而 README 和 CI
 用法:
     python scripts/validate_gzh_html.py <文件.html>
     python scripts/validate_gzh_html.py --stdin < 文件.html
+    python scripts/validate_gzh_html.py <文件.html> --json  # 机器可读 JSON
+
+--json 给 UI/CI 用：stdout 只输出一个 JSON 对象（errors/warns/spanLeafCount/exit），
+人类报告改走 stderr；为保持旧 --help 逐字节不变，它不列在 --help 里。
 
 退出码: 0 = 通过, 1 = 有 ERROR（必须清零才能推送）
 """
 
 import argparse
+import json
 import re
 import sys
 from html.parser import HTMLParser
@@ -31,24 +36,24 @@ from html.parser import HTMLParser
 if hasattr(sys.stdout, "reconfigure"):
     sys.stdout.reconfigure(encoding="utf-8", errors="replace")
 
-# (正则, 说明) —— 命中即 ERROR，会被公众号过滤或导致粘贴后样式失效
+# (正则, 说明, JSON rule id) —— 命中即 ERROR，会被公众号过滤或导致粘贴后样式失效
 FORBIDDEN = [
-    (re.compile(r"<style[\s>]", re.I), "<style> 标签会被过滤，样式必须内联"),
-    (re.compile(r"<script[\s>]", re.I), "<script> 标签会被过滤"),
-    (re.compile(r"</?div[\s>]", re.I), "<div> 会被改写，请用 <section>"),
-    (re.compile(r"<link[\s>]", re.I), "外部 <link>（CSS/字体）会被过滤"),
-    (re.compile(r"\sclass\s*=", re.I), "class 属性会被剥离，请用内联 style"),
-    (re.compile(r"\sid\s*=", re.I), "id 属性会被剥离"),
+    (re.compile(r"<style[\s>]", re.I), "<style> 标签会被过滤，样式必须内联", "tag-style"),
+    (re.compile(r"<script[\s>]", re.I), "<script> 标签会被过滤", "tag-script"),
+    (re.compile(r"</?div[\s>]", re.I), "<div> 会被改写，请用 <section>", "tag-div"),
+    (re.compile(r"<link[\s>]", re.I), "外部 <link>（CSS/字体）会被过滤", "tag-link"),
+    (re.compile(r"\sclass\s*=", re.I), "class 属性会被剥离，请用内联 style", "css-class-attr"),
+    (re.compile(r"\sid\s*=", re.I), "id 属性会被剥离", "css-id-attr"),
     (re.compile(r"position\s*:\s*(fixed|absolute|sticky)", re.I),
-     "position fixed/absolute/sticky 不被支持"),
-    (re.compile(r"float\s*:", re.I), "float 不被支持"),
-    (re.compile(r"@media", re.I), "@media 媒体查询不被支持"),
-    (re.compile(r"@keyframes", re.I), "@keyframes 动画不被支持"),
-    (re.compile(r"@import", re.I), "@import 不被支持"),
-    (re.compile(r"display\s*:\s*grid", re.I), "display:grid 不被支持，请用 flex"),
-    (re.compile(r"var\s*\(\s*--", re.I), "CSS 变量 var(--x) 不被支持，请写死值"),
+     "position fixed/absolute/sticky 不被支持", "css-position"),
+    (re.compile(r"float\s*:", re.I), "float 不被支持", "css-float"),
+    (re.compile(r"@media", re.I), "@media 媒体查询不被支持", "css-media"),
+    (re.compile(r"@keyframes", re.I), "@keyframes 动画不被支持", "css-keyframes"),
+    (re.compile(r"@import", re.I), "@import 不被支持", "css-import"),
+    (re.compile(r"display\s*:\s*grid", re.I), "display:grid 不被支持，请用 flex", "css-grid"),
+    (re.compile(r"var\s*\(\s*--", re.I), "CSS 变量 var(--x) 不被支持，请写死值", "css-var"),
     (re.compile(r"url\s*\(\s*['\"]?https?://[^)]*\.(woff2?|ttf|otf|eot)", re.I),
-     "外部字体不被支持"),
+     "外部字体不被支持", "css-external-font"),
 ]
 
 # 公众号编辑器认识的标签。没登记的一律报错，宁可错杀不放进正文。
@@ -84,10 +89,16 @@ GRADIENT_BACKGROUND = re.compile(
 BROKEN_STYLE_ATTR = re.compile(r"""style\s*=\s*"[^"]*"[^>]*"|style\s*=\s*'[^']*'[^>]*'""", re.I)
 
 
+def line_no(html, pos):
+    """pos 在 html 里的 1 起行号（--json 的 line 字段用）。"""
+    return html.count("\n", 0, max(0, pos)) + 1
+
+
 def check_balance(html):
     """栈解析标签开闭平衡，返回问题列表（空 = 平衡）。
 
     查两类问题：未闭合 / 多余闭合，以及 <section><p>…</section></p> 这种交叉嵌套。
+    每项是 {"rule","message","pos"}；message 不含人类报告的分组前缀。
     """
     stack, problems = [], []
     for m in TAG_RE.finditer(html):
@@ -98,13 +109,15 @@ def check_balance(html):
             continue
         if closing:
             if not stack:
-                problems.append("多余的闭合标签 </%s>（偏移 %d）" % (tag, m.start()))
+                problems.append({"rule": "tag-balance", "pos": m.start(),
+                                 "message": "多余的闭合标签 </%s>（偏移 %d）"
+                                            % (tag, m.start())})
             elif stack[-1] == tag:
                 stack.pop()
             else:
-                problems.append(
-                    "交叉嵌套：期望闭合 <%s>，遇到 </%s>（偏移 %d）"
-                    % (stack[-1], tag, m.start()))
+                problems.append({"rule": "tag-balance", "pos": m.start(),
+                                 "message": "交叉嵌套：期望闭合 <%s>，遇到 </%s>（偏移 %d）"
+                                            % (stack[-1], tag, m.start())})
                 for i in range(len(stack) - 1, -1, -1):
                     if stack[i] == tag:
                         del stack[i:]
@@ -112,20 +125,23 @@ def check_balance(html):
         else:
             stack.append(tag)
     if stack:
-        problems.append("未闭合标签: " + " > ".join("<%s>" % t for t in stack))
+        problems.append({"rule": "tag-unclosed", "pos": len(html),
+                         "message": "未闭合标签: " + " > ".join("<%s>" % t for t in stack)})
     return problems
 
 
 def check_tags(html):
-    """查禁用标签与未登记标签。"""
+    """查禁用标签与未登记标签。每项是 {"rule","message","pos"}。"""
     problems = []
     for m in TAG_RE.finditer(html):
         tag = m.group(2).lower()
         if tag in ("div", "form", "iframe", "script", "style", "input",
                    "button", "video", "canvas"):
-            problems.append("禁用标签 <%s>：公众号不支持，样式会丢" % tag)
+            problems.append({"rule": "tag-forbidden", "pos": m.start(),
+                             "message": "禁用标签 <%s>：公众号不支持，样式会丢" % tag})
         elif tag not in ALLOWED_TAGS:
-            problems.append("未登记标签 <%s>：公众号可能不认，请换 section/p/span" % tag)
+            problems.append({"rule": "tag-unregistered", "pos": m.start(),
+                             "message": "未登记标签 <%s>：公众号可能不认，请换 section/p/span" % tag})
     return problems
 
 
@@ -138,8 +154,8 @@ class LeafChecker(HTMLParser):
         self.leaf_depth = 0
         self.code_depth = 0
         self.span_leaf_count = 0
-        self.unwrapped = []       # (文本片段, 父标签)
-        self.half_punct = []
+        self.unwrapped = []       # (文本片段, 父标签, 行号)
+        self.half_punct = []      # (文本片段, 行号)
 
     def handle_starttag(self, tag, attrs):
         ad = dict(attrs)
@@ -169,98 +185,164 @@ class LeafChecker(HTMLParser):
             return
         if any(t in SKIP_TAGS for t, _, _ in self.stack):
             return
+        line = self.getpos()[0]       # 文本节点起始行号
         if self.leaf_depth == 0:
             parent = self.stack[-1][0] if self.stack else "(root)"
             snippet = text[:24] + ("…" if len(text) > 24 else "")
-            self.unwrapped.append((snippet, parent))
+            self.unwrapped.append((snippet, parent, line))
         if self.code_depth == 0 and (HALF_PUNCT.search(text)
                                      or ASCII_QUOTE.search(text)):
             snippet = text[:24] + ("…" if len(text) > 24 else "")
-            self.half_punct.append(snippet)
+            self.half_punct.append((snippet, line))
 
 
-def validate(html):
-    """返回 (errors, warnings, span_leaf_count)。"""
+def validate_records(html):
+    """返回 (errors, warnings, span_leaf_count)，errors/warnings 是结构化记录。
+
+    记录形如 {"line":N,"rule":"...","message":"人类可读说明"}，聚合项另带 "count"。
+    """
     errors, warnings = [], []
 
     for prob in check_balance(html):
-        errors.append("标签不平衡: " + prob)
+        errors.append({"line": line_no(html, prob["pos"]), "rule": prob["rule"],
+                       "message": "标签不平衡: " + prob["message"]})
     for prob in check_tags(html):
-        errors.append(prob)
+        errors.append({"line": line_no(html, prob["pos"]), "rule": prob["rule"],
+                       "message": prob["message"]})
 
-    for rx, msg in FORBIDDEN:
-        hits = len(rx.findall(html))
-        if hits:
-            errors.append("%s（命中 %d 处）" % (msg, hits))
+    for rx, msg, rule in FORBIDDEN:
+        matches = list(rx.finditer(html))
+        if matches:
+            errors.append({"line": line_no(html, matches[0].start()), "rule": rule,
+                           "message": "%s（命中 %d 处）" % (msg, len(matches)),
+                           "count": len(matches)})
 
     checker = LeafChecker()
     try:
         checker.feed(html)
     except Exception as e:
-        warnings.append("HTML 解析中断: %s" % e)
+        warnings.append({"line": 1, "rule": "html-parse-interrupted",
+                         "message": "HTML 解析中断: %s" % e})
 
     has_cjk = bool(CJK.search(html))
     if has_cjk and checker.span_leaf_count == 0:
-        errors.append("全文没有任何 <span leaf> 包裹，粘贴到公众号后样式会大面积丢失")
+        errors.append({"line": 1, "rule": "span-leaf-missing",
+                       "message": "全文没有任何 <span leaf> 包裹，粘贴到公众号后样式会大面积丢失"})
     elif checker.unwrapped:
         sample = "；".join("「%s」(在 <%s> 内)" % (s, p)
-                          for s, p in checker.unwrapped[:5])
-        warnings.append("%d 处中文文本未被 <span leaf> 包裹，样式可能丢失。例：%s"
-                        % (len(checker.unwrapped), sample))
+                          for s, p, _ in checker.unwrapped[:5])
+        warnings.append({"line": checker.unwrapped[0][2], "rule": "span-leaf-unwrapped",
+                         "message": "%d 处中文文本未被 <span leaf> 包裹，样式可能丢失。例：%s"
+                                    % (len(checker.unwrapped), sample),
+                         "count": len(checker.unwrapped)})
 
     if checker.half_punct:
-        sample = "；".join("「%s」" % s for s in checker.half_punct[:5])
-        warnings.append("%d 处正文疑似半角标点/英文引号，应改中文全角（代码块内不计）。例：%s"
-                        % (len(checker.half_punct), sample))
+        sample = "；".join("「%s」" % s for s, _ in checker.half_punct[:5])
+        warnings.append({"line": checker.half_punct[0][1], "rule": "half-punct",
+                         "message": "%d 处正文疑似半角标点/英文引号，应改中文全角（代码块内不计）。例：%s"
+                                    % (len(checker.half_punct), sample),
+                         "count": len(checker.half_punct)})
 
     # 样式属性被引号截断（多半是主题/配置里的注释漏进了值）
     broken = list(BROKEN_STYLE_ATTR.finditer(html))
     if broken:
         sample = html[broken[0].start():broken[0].start() + 80].replace("\n", " ")
-        errors.append("%d 处 style 属性内混入了未转义的引号（属性被提前截断），"
-                      "后面的内容会变成脏属性或裸文本。例：%s…" % (len(broken), sample))
+        errors.append({"line": line_no(html, broken[0].start()),
+                       "rule": "style-attr-truncated",
+                       "message": "%d 处 style 属性内混入了未转义的引号（属性被提前截断），"
+                                  "后面的内容会变成脏属性或裸文本。例：%s…" % (len(broken), sample),
+                       "count": len(broken)})
 
     # 渐变背景（挖掉注释/字符串/url 后再查，避免把示例文字当样式）
     masked = CSS_NON_FUNCTION.sub(" ", html)
     grad_hits = list(GRADIENT_BACKGROUND.finditer(masked))
     if grad_hits:
-        warnings.append(
-            "%d 处内联渐变背景（background:…gradient）：公众号深色模式会弹 darkmode-no-gradient "
-            "提示。建议改主题内纯色/rgba；确需保留时交付说明风险" % len(grad_hits))
+        snippet = masked[grad_hits[0].start():grad_hits[0].end()]
+        pos = html.find(snippet)
+        warnings.append({"line": line_no(html, pos if pos >= 0 else 0),
+                         "rule": "gradient-background",
+                         "message": "%d 处内联渐变背景（background:…gradient）：公众号深色模式会弹 darkmode-no-gradient "
+                                    "提示。建议改主题内纯色/rgba；确需保留时交付说明风险" % len(grad_hits),
+                         "count": len(grad_hits)})
 
     return errors, warnings, checker.span_leaf_count
 
 
+def validate(html):
+    """向后兼容的字符串返回：(errors, warnings, span_leaf_count)。"""
+    errors, warnings, leaf_n = validate_records(html)
+    return [e["message"] for e in errors], [w["message"] for w in warnings], leaf_n
+
+
+def _split_json_flag(argv, value_opts=()):
+    """摘掉独立的 --json（不注册进 argparse，旧 help/usage 才能逐字节不变）。
+
+    value_opts 里是带值选项；它们的下一个 token 即使叫 --json 也当值保留。
+    "--" 之后全是位置参数，不再扫描。
+    """
+    out, found, i = [], False, 0
+    while i < len(argv):
+        arg = argv[i]
+        if arg == "--":
+            out.extend(argv[i:])
+            break
+        if arg == "--json":
+            found = True
+        else:
+            out.append(arg)
+            if arg in value_opts and i + 1 < len(argv):
+                i += 1
+                out.append(argv[i])
+        i += 1
+    return out, found
+
+
 def main():
+    argv, json_mode = _split_json_flag(sys.argv[1:])
     ap = argparse.ArgumentParser(description="gzhflow 公众号 HTML 校验")
     ap.add_argument("file", nargs="?", help="HTML 文件路径")
     ap.add_argument("--stdin", action="store_true", help="从标准输入读取")
-    args = ap.parse_args()
+    args = ap.parse_args(argv)
+
+    out = sys.stderr if json_mode else sys.stdout
 
     if args.stdin or not args.file:
         html = sys.stdin.read()
         name = "<stdin>"
     else:
-        with open(args.file, encoding="utf-8", errors="replace") as f:
-            html = f.read()
+        try:
+            with open(args.file, encoding="utf-8", errors="replace") as f:
+                html = f.read()
+        except OSError as e:
+            if not json_mode:
+                raise
+            print(json.dumps({"file": args.file, "errors": [], "warns": [],
+                              "spanLeafCount": 0, "exit": 1, "error": str(e)},
+                             ensure_ascii=False))
+            sys.exit(1)
         name = args.file
 
-    errors, warnings, leaf_n = validate(html)
+    errors, warnings, leaf_n = validate_records(html)
 
-    print("📋 公众号 HTML 合规校验: %s" % name)
-    print("   span leaf 包裹: %d 处" % leaf_n)
+    print("📋 公众号 HTML 合规校验: %s" % name, file=out)
+    print("   span leaf 包裹: %d 处" % leaf_n, file=out)
     if errors:
-        print("\n❌ ERROR ×%d（必须修复，否则粘贴后失效）:" % len(errors))
+        print("\n❌ ERROR ×%d（必须修复，否则粘贴后失效）:" % len(errors), file=out)
         for e in errors:
-            print("   • %s" % e)
+            print("   • %s" % e["message"], file=out)
     if warnings:
-        print("\n⚠️  WARNING ×%d（建议人工确认）:" % len(warnings))
+        print("\n⚠️  WARNING ×%d（建议人工确认）:" % len(warnings), file=out)
         for w in warnings:
-            print("   • %s" % w)
+            print("   • %s" % w["message"], file=out)
     if not errors and not warnings:
-        print("\n✅ 完全合规，可直接粘贴到公众号编辑器")
+        print("\n✅ 完全合规，可直接粘贴到公众号编辑器", file=out)
     elif not errors:
-        print("\n✅ 无致命问题，可粘贴（warning 请人工确认）")
+        print("\n✅ 无致命问题，可粘贴（warning 请人工确认）", file=out)
+
+    if json_mode:
+        print(json.dumps({"file": name, "errors": errors, "warns": warnings,
+                          "spanLeafCount": leaf_n, "exit": 1 if errors else 0},
+                         ensure_ascii=False))
 
     sys.exit(1 if errors else 0)
 

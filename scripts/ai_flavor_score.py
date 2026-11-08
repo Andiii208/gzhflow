@@ -16,6 +16,10 @@
     python scripts/ai_flavor_score.py --text "文本"    # 检直接传入的文本
     python scripts/ai_flavor_score.py --model deepseek <稿件.md>
     python scripts/ai_flavor_score.py - < 稿件.md      # 检 stdin
+    python scripts/ai_flavor_score.py <稿件.md> --json  # 机器可读 JSON（stdout 只有 JSON）
+
+--json 给 UI/CI 用：stdout 只输出一个 JSON 对象（fail/warn/stats/exit），
+人类报告改走 stderr；为保持旧 --help 逐字节不变，它不列在 --help 里。
 
 --model 只影响破折号的阈值。破折号这项模型间极差 40 倍
 （DeepSeek 5.16 次/千字，Claude 4.25，Kimi 2.32，Gemini 0.51，GPT 只有 0.11，
@@ -26,6 +30,7 @@
 文体分流：draft.md frontmatter 写 genre: 抒情 / 说理 / 测评，抒情类跳过数字密度提示。
 """
 import argparse
+import json
 import re
 import sys
 from collections import Counter
@@ -137,6 +142,42 @@ CONJUNCTION_RE = re.compile(
 DASH_RE = re.compile(r"[—–]")
 
 
+def line_no(text, pos):
+    """pos 在 text 里的 1 起行号（--json 的 line 字段用）。"""
+    return text.count("\n", 0, max(0, pos)) + 1
+
+
+def iter_paragraphs(text):
+    """按空行切段，产出 (段首行号, 段文本)，与 re.split(r"\\n\\s*\\n") 的切法一致。"""
+    out, start, buf = [], 0, []
+    for idx, line in enumerate(text.split("\n"), 1):
+        if line.strip():
+            if not buf:
+                start = idx
+            buf.append(line)
+        elif buf:
+            out.append((start, "\n".join(buf).strip()))
+            buf = []
+    if buf:
+        out.append((start, "\n".join(buf).strip()))
+    return out
+
+
+def frontmatter_line_offset(raw):
+    """frontmatter 占掉的行数；正文里的行号 + 它才是文件真实行号。"""
+    if raw.startswith("---"):
+        parts = raw.split("---", 2)
+        if len(parts) >= 3:
+            end = len(parts[0]) + 3 + len(parts[1]) + 3
+            return raw[:end].count("\n")
+    return 0
+
+
+def emit_json(payload):
+    """stdout 只输出一个 JSON 对象（单行、ensure_ascii=False）。"""
+    print(json.dumps(payload, ensure_ascii=False))
+
+
 def strip_frontmatter(text):
     """剥离 YAML frontmatter（--- 块）。"""
     if text.startswith("---"):
@@ -206,12 +247,17 @@ def dash_threshold(model):
     return max(DASH_HUMAN, rate * 0.6)
 
 
-def detect(text, model=None, genre=""):
+def detect(text, model=None, genre="", line_offset=0):
     fails, warns = [], []
+    fail_items, warn_items = [], []   # --json 的结构化明细，与人类输出同序
+    paragraphs = iter_paragraphs(text)
 
     for name, pat in HARD_BANS.items():
         for m in pat.finditer(text):
-            fails.append("[FAIL] %s: 「%s」" % (name, text[max(0, m.start() - 8):m.end() + 8]))
+            snippet = text[max(0, m.start() - 8):m.end() + 8]
+            fails.append("[FAIL] %s: 「%s」" % (name, snippet))
+            fail_items.append({"line": line_offset + line_no(text, m.start()),
+                               "rule": name, "text": snippet})
 
     for name, pat in WARN_ITEMS.items():
         if pat is None or name == "段首有回指":
@@ -219,51 +265,69 @@ def detect(text, model=None, genre=""):
             continue
         if name == "段首零回指评论":
             # 逐段看段首：命中评论语且没有回指成分才算
-            paras = [p.strip() for p in re.split(r"\n\s*\n", text) if p.strip()]
-            for para in paras:
+            for start_line, para in paragraphs:
                 first = para.split("\n")[0].strip()
                 if pat.match(first) and not WARN_ITEMS["段首有回指"].match(first):
                     snippet = first[:24] + ("…" if len(first) > 24 else "")
                     warns.append("[WARN] 段首零回指评论（R=4.4，全场最强特征，"
                                  "补个「这/那」就能修）: 「%s」" % snippet)
+                    warn_items.append({"line": line_offset + start_line,
+                                       "rule": name, "text": snippet})
             continue
         if name == "序数词小标题":
             # 只看以标题形式出现的行，正文里提"第一步"不算
-            for line in text.splitlines():
-                line = line.strip()
+            for line_idx, raw_line in enumerate(text.splitlines(), 1):
+                line = raw_line.strip()
                 if line.startswith("#") or re.match(r"^\*\*", line):
                     if pat.match(re.sub(r"^[#*\s]+", "", line)):
                         warns.append("[WARN] 序数词小标题（R=3.1）: 「%s」" % line[:30])
+                        warn_items.append({"line": line_offset + line_idx,
+                                           "rule": name, "text": line[:30]})
             continue
         if name == "句首连接词":
-            for line in text.splitlines():
-                line = line.strip()
+            for line_idx, raw_line in enumerate(text.splitlines(), 1):
+                line = raw_line.strip()
                 if not line:
                     continue
                 if pat.match(line):
                     warns.append("[WARN] 句首连接词（R=2.6~5.3）: 「%s」" % line[:24])
+                    warn_items.append({"line": line_offset + line_idx,
+                                       "rule": name, "text": line[:24]})
             continue
         for m in pat.finditer(text):
-            warns.append("[WARN] %s: 「%s」" % (name, text[max(0, m.start() - 8):m.end() + 8]))
+            snippet = text[max(0, m.start() - 8):m.end() + 8]
+            warns.append("[WARN] %s: 「%s」" % (name, snippet))
+            warn_items.append({"line": line_offset + line_no(text, m.start()),
+                               "rule": name, "text": snippet})
 
     # 抒情词计数（≥2 才报）
     lyr = WARN_ITEMS["抒情词（≥2 处）"]
     lyr_hits = lyr.findall(text)
     if len(lyr_hits) >= 2:
-        warns.append("[WARN] 抒情词 %d 处: %s" % (len(lyr_hits), "/".join(lyr_hits)))
+        lyr_text = "/".join(lyr_hits)
+        warns.append("[WARN] 抒情词 %d 处: %s" % (len(lyr_hits), lyr_text))
+        warn_items.append({"line": line_offset + line_no(text, text.find(lyr_hits[0])),
+                           "rule": "抒情词（≥2 处）", "text": lyr_text})
 
-    paras = [p.strip() for p in re.split(r"\n\s*\n", text) if p.strip()]
+    paras = [p for _, p in paragraphs]
 
     # 相邻句同构
     iso = detect_adjacent_isomorphic(paras)
     if iso:
+        iso_text = "%d 处: %s" % (len(iso), "；".join(iso[:3]))
         warns.append("[WARN] 相邻句同构（R=2.0，%d 处）: %s"
                      % (len(iso), "；".join(iso[:3])))
+        warn_items.append({"line": line_offset + line_no(text, text.find(iso[0].split(" / ")[0])),
+                           "rule": "相邻句同构", "text": iso_text})
 
     # 重复开头词
     rep = detect_repeat_head(paras)
     if rep:
         warns.append("[WARN] 重复开头词: 「%s」作为段首词出现 %d 次" % rep)
+        rep_m = re.search(r"^[#>\-\*\d\.、\s]*" + re.escape(rep[0]), text, re.M)
+        warn_items.append({"line": line_offset + line_no(text, rep_m.start() if rep_m else 0),
+                           "rule": "重复开头词",
+                           "text": "「%s」作为段首词出现 %d 次" % rep})
 
     # 连词密度
     sentences = [s for s in re.split(r"[。！？!?]", text) if s.strip()]
@@ -272,11 +336,15 @@ def detect(text, model=None, genre=""):
         if conj_cnt / len(sentences) > 0.5:
             warns.append("[WARN] 连词密度偏高: %d 个连词 / %d 句"
                          % (conj_cnt, len(sentences)))
+            conj_m = CONJUNCTION_RE.search(text)
+            warn_items.append({"line": line_offset + line_no(text, conj_m.start() if conj_m else 0),
+                               "rule": "连词密度偏高",
+                               "text": "%d 个连词 / %d 句" % (conj_cnt, len(sentences))})
 
     # 短段连击
-    if len(paras) >= 3:
+    if len(paragraphs) >= 3:
         streak = 0
-        for para in paras:
+        for start_line, para in paragraphs:
             body = re.sub(r"^[#>\-\*\d\.、\s]+", "", para)
             if len(body) <= 15:
                 streak += 1
@@ -284,6 +352,9 @@ def detect(text, model=None, genre=""):
                 streak = 0
             if streak >= 3:
                 warns.append("[WARN] 短段连击: 连续 ≥3 段过短（每段 ≤15 字，节奏细碎）")
+                warn_items.append({"line": line_offset + start_line,
+                                   "rule": "短段连击",
+                                   "text": "连续 ≥3 段过短（每段 ≤15 字）"})
                 break
 
     # 破折号。2026-10-12 从 FAIL 降为 WARN：实测作者本人每千字 1.65 次，
@@ -291,64 +362,128 @@ def detect(text, model=None, genre=""):
     # 阈值照算，但只报告，让人自己跟"自己平时用多少"比。
     plain = text
     body_chars = len(re.sub(r"\s", "", plain))
+    dashes = len(DASH_RE.findall(plain))
+    digits = len(re.findall(r"[0-9０-９]|一两三四五六七八九十百千万亿", plain))
+    dash_per_k = dashes * 1000.0 / body_chars if body_chars else 0.0
+    digit_per_k = digits * 1000.0 / body_chars if body_chars else 0.0
     if body_chars >= 200:
-        dashes = len(DASH_RE.findall(plain))
-        per_k = dashes * 1000.0 / body_chars
+        per_k = dash_per_k
         thr = dash_threshold(model)
         if per_k > DASH_HUMAN:
             warns.append("[WARN] 破折号: 每千字 %.2f 次，人类基准 %.2f，%s 阈值 %.2f。"
                          "跟你自己平时比，别跟通用基准比"
                          % (per_k, DASH_HUMAN, model or "默认", thr))
+            dash_m = DASH_RE.search(plain)
+            warn_items.append({"line": line_offset + line_no(text, dash_m.start() if dash_m else 0),
+                               "rule": "破折号",
+                               "text": "每千字 %.2f 次（人类基准 %.2f，%s 阈值 %.2f）"
+                                       % (per_k, DASH_HUMAN, model or "默认", thr)})
 
     # 数字密度。实测反向：人类每千字 17.92 个数字，生成侧只有 6.34（R=0.35）。
     # 人类是 AI 的 2.8 倍。数字太少往往意味着写得不够具体。
     # 抒情类不报——实测作者的抒情样本数字密度是 0.0，硬报会推动人家去散文里塞数据。
     if body_chars >= 400 and "抒情" not in genre:
-        digits = len(re.findall(r"[0-9０-９]|一两三四五六七八九十百千万亿", plain))
-        per_k = digits * 1000.0 / body_chars
+        per_k = digit_per_k
         if per_k < 8:
             warns.append("[WARN] 数字偏少: 每千字 %.1f 个，人类基准约 17.9。"
                          "是不是有一段可以落到具体数上？" % per_k)
+            digit_m = re.search(r"[0-9０-９]", plain)
+            warn_items.append({"line": line_offset + line_no(text, digit_m.start() if digit_m else 0),
+                               "rule": "数字偏少",
+                               "text": "每千字 %.1f 个（人类基准约 17.9）" % per_k})
 
-    return fails, warns
+    stats = {
+        "chars": body_chars,
+        "lines": len(text.splitlines()),
+        "paragraphs": len(paragraphs),
+        "sentences": len(sentences),
+        "dashesPerK": round(dash_per_k, 2),
+        "digitsPerK": round(digit_per_k, 2),
+        "model": model or "",
+        "genre": genre,
+    }
+    return fails, warns, fail_items, warn_items, stats
+
+
+def _split_json_flag(argv, value_opts=()):
+    """摘掉独立的 --json（不注册进 argparse，旧 help/usage 才能逐字节不变）。
+
+    value_opts 里是带值选项；它们的下一个 token 即使叫 --json 也当值保留。
+    "--" 之后全是位置参数，不再扫描。
+    """
+    out, found, i = [], False, 0
+    while i < len(argv):
+        arg = argv[i]
+        if arg == "--":
+            out.extend(argv[i:])
+            break
+        if arg == "--json":
+            found = True
+        else:
+            out.append(arg)
+            if arg in value_opts and i + 1 < len(argv):
+                i += 1
+                out.append(argv[i])
+        i += 1
+    return out, found
 
 
 def main():
+    argv, json_mode = _split_json_flag(sys.argv[1:], {"--text", "--model"})
     ap = argparse.ArgumentParser(description="gzhflow 去 AI 味质检门")
     ap.add_argument("path", nargs="?", help="稿件文件路径（- 表示 stdin）")
     ap.add_argument("--text", help="直接传入文本")
     ap.add_argument("--model", help="当前用的模型（gpt/gemini/kimi/claude/deepseek），只影响破折号阈值")
-    args = ap.parse_args()
+    args = ap.parse_args(argv)
 
+    out = sys.stderr if json_mode else sys.stdout
     genre = ""
+    line_offset = 0
     if args.text:
         text = args.text
     elif args.path == "-":
         text = sys.stdin.read()
     elif args.path:
-        raw = open(args.path, encoding="utf-8").read()
+        try:
+            raw = open(args.path, encoding="utf-8").read()
+        except OSError as e:
+            if not json_mode:
+                raise
+            emit_json({"fail": [], "warn": [], "stats": {}, "exit": 1, "error": str(e)})
+            sys.exit(1)
         genre = read_genre(raw)
+        line_offset = frontmatter_line_offset(raw)
         text = strip_frontmatter(raw)
         text = strip_signature(text)
     else:
-        ap.print_help()
+        if json_mode:
+            emit_json({"fail": [], "warn": [], "stats": {}, "exit": 2,
+                       "error": "缺少输入：请给文件路径、--text 或 -"})
+            ap.print_help(sys.stderr)
+        else:
+            ap.print_help()
         sys.exit(2)
 
-    fails, warns = detect(text, args.model, genre)
+    fails, warns, fail_items, warn_items, stats = detect(
+        text, args.model, genre, line_offset)
 
     if warns:
-        print("⚠️  WARN 项（体检报告，人工判断）:")
+        print("⚠️  WARN 项（体检报告，人工判断）:", file=out)
         for w in warns:
-            print("   ", w)
+            print("   ", w, file=out)
 
     if fails:
-        print("🔴 FAIL: %d 处命中，必须清零后才能交稿:" % len(fails))
+        print("🔴 FAIL: %d 处命中，必须清零后才能交稿:" % len(fails), file=out)
         for f in fails:
-            print("   ", f)
-        sys.exit(1)
+            print("   ", f, file=out)
+    else:
+        print("✅ FAIL 清零，通过", file=out)
 
-    print("✅ FAIL 清零，通过")
-    sys.exit(0)
+    if json_mode:
+        emit_json({"fail": fail_items, "warn": warn_items, "stats": stats,
+                   "exit": 1 if fails else 0})
+
+    sys.exit(1 if fails else 0)
 
 
 if __name__ == "__main__":
