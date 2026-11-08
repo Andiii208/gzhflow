@@ -438,9 +438,9 @@ body[data-ds-dark-theme] .gzw-flow-step.active .gzw-flow-node{color:#04231e}
 .gzw-metric-v .u{font:var(--dsw-font-xxs-12);font-weight:500;color:var(--gzw-ink-3)}
 .gzw-metric-hint{font:var(--dsw-font-xxxs-11);color:var(--gzw-ink-3);line-height:1.5}
 
-.gzw-hist{display:flex;align-items:flex-end;gap:var(--gzw-s4);height:96px;padding-top:var(--gzw-s2);border-bottom:1px solid var(--gzw-line-soft)}
+.gzw-hist{display:flex;align-items:flex-end;gap:var(--gzw-s4);height:110px;padding-top:var(--gzw-s2);border-bottom:1px solid var(--gzw-line-soft)}
 .gzw-hist-col{flex:1;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;gap:5px;height:100%;min-width:0}
-.gzw-hist-bar{width:46px;border-radius:4px 4px 0 0;background:var(--gzw-accent-soft);border-top:2px solid var(--gzw-accent);min-height:2px;transition:height var(--gzw-dur-slow) var(--gzw-ease)}
+.gzw-hist-bar{width:46px;flex:none;border-radius:4px 4px 0 0;background:var(--gzw-accent-soft);border-top:2px solid var(--gzw-accent);min-height:2px;transition:height var(--gzw-dur-slow) var(--gzw-ease)}
 .gzw-hist-bar.long{border-top-color:var(--gzw-warn);background:var(--gzw-warn-soft)}
 .gzw-hist-label{font:var(--dsw-font-xxxs-11);color:var(--gzw-ink-3);white-space:nowrap;font-variant-numeric:tabular-nums}
 .gzw-hist-count{font:var(--dsw-font-xxs-12);color:var(--gzw-ink-2);font-variant-numeric:tabular-nums;font-weight:600}
@@ -2684,7 +2684,10 @@ body[data-ds-dark-theme] .gzw-session.bound .gzw-avatar{color:#04231e}
           showToast('已写进 inbox')
           await loadDoc('assets/inbox.md')
         } else {
-          setNoteError(clip(data?.error ?? result.text, 240))
+          const raw = clip(data?.error ?? result.text, 240)
+          // 宿主命令是启动时注册的：插件刚更新时需要重启 DSH 才认新命令
+          const needsRestart = /gzh-note|unknown|not found|找不到|命令失败/i.test(String(raw))
+          setNoteError(needsRestart ? raw + '　（如果提示命令不存在，重启一次 DSH 让宿主命令生效）' : raw)
           log('写入 inbox 失败：' + clip(result.text, 240))
         }
         setNoteBusy(false)
