@@ -1,0 +1,6 @@
+# gzh-workbench — DSH bundle patch.
+# Registers the workbench Host half (slash commands) and ships the Web UI
+# (Client half) that registers the global `main` panel and its sidebar entry.
+- insert:
+    - id: gzh-workbench
+      name: '@local/gzh-workbench'

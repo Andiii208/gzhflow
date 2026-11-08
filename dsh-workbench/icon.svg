@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <defs>
+    <linearGradient id="gzh-body" x1="8" y1="4" x2="52" y2="60" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#0f8a76"/>
+      <stop offset="0.62" stop-color="#0a564d"/>
+      <stop offset="1" stop-color="#08403b"/>
+    </linearGradient>
+    <linearGradient id="gzh-amber" x1="34" y1="30" x2="58" y2="54" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#f5c265"/>
+      <stop offset="1" stop-color="#d78f1c"/>
+    </linearGradient>
+  </defs>
+  <rect x="2" y="2" width="60" height="60" rx="15" fill="url(#gzh-body)"/>
+  <!-- 文稿 -->
+  <path d="M14 15.5h24.5v22.5H23.2l-5.6 4.9v-4.9H14z" fill="none" stroke="#e9faf5" stroke-width="3" stroke-linejoin="round" opacity="0.92"/>
+  <path d="M19 22.5h14.5M19 28h9.5" stroke="#e9faf5" stroke-width="3" stroke-linecap="round" opacity="0.72"/>
+  <!-- 阶段环 -->
+  <path d="M45.5 22.5a9.5 9.5 0 1 1-6.7-9.1" fill="none" stroke="#8df0d9" stroke-width="3" stroke-linecap="round" opacity="0.95"/>
+  <!-- 完成勾 -->
+  <circle cx="47" cy="45" r="9.5" fill="url(#gzh-amber)"/>
+  <path d="M42.6 45.3l3.2 3.2 6-6.2" fill="none" stroke="#1f3d35" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

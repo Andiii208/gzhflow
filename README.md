@@ -55,6 +55,12 @@ bash dsh-preset/install.sh                                       # macOS / Linux
 
 详见 [`dsh-preset/README.md`](dsh-preset/README.md)。
 
+### 公众号工作台（控制面）
+
+[`dsh-workbench/`](dsh-workbench/) 是另一个 DSH bundle：装上以后，DSH 侧栏多一个「公众号工作台」入口，点开是一整页控制台——当前篇与七阶段进度、全文审阅（通过 / 退回）、AI 味体检可视化、Agent 操作轨迹、四库只读与「记一笔」、产物时间线、发布 dry-run 与二次确认推送。
+
+它只是**控制面**：状态从 `state.md` / `generated/` / 会话事件派生，确定性动作直接调 `scripts/` 里同一批脚本，创作交给会话里的 Agent；关掉它，CLI 七阶段照样跑。设计与可视化清单见 [`docs/dsh/gzhflow-DSH工作台计划-v2.md`](docs/dsh/gzhflow-DSH工作台计划-v2.md)，安装说明见 [`dsh-workbench/README.md`](dsh-workbench/README.md)。
+
 ## 七阶段流程
 
 | 阶段 | 作用 | 质量门 |
@@ -91,11 +97,12 @@ gzhflow/
 ├── state.md             # 跨会话状态机（每次会话先读）
 ├── assets/              # 四库：inbox / voice / voice-samples / lessons / log
 ├── skills/gzhflow/      # 主编排 SKILL.md + 七阶段 prompts/
+├── dsh-workbench/       # DSH 插件：公众号工作台（控制面）
 ├── references/          # 方法论活文档
 ├── scripts/             # 纯 CLI 质检/排版/裁剪/推草稿
 ├── config/*.example     # 配置模板（你的文风/主题/凭证）
 ├── examples/            # 去个人化示例 + 空白模板
-└── docs/                # 上手/迁移/Agent 适配
+└── docs/                # 上手/迁移/Agent 适配/DSH 工作台计划
 ```
 
 ## 背景
