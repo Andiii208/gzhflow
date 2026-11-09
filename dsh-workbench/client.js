@@ -1758,14 +1758,18 @@ body[data-ds-dark-theme] .gzw-avatar.on{color:#04231e}
       const readArtifact = React.useCallback(
         async (relPath, prefixOverride) => {
           const prefix = typeof prefixOverride === 'string' ? prefixOverride : readPrefix
+          // 优先走宿主命令（直读磁盘，最准）；workspaceFiles 可能有缓存，
+          // 写完立刻重读时会出现「文件已改、界面还是旧的」。
+          const fallback = await execCommand('/gzh-read ' + relPath + ' --json')
+          const data = parseJsonText(fallback.text)
+          if (data !== null && data.ok === true) {
+            return { ok: true, text: String(data.text || ''), lines: data.lines, bytes: data.bytes, path: relPath }
+          }
           const direct = await readWorkspaceFile(prefix + relPath)
           if (direct.ok) return { ...direct, path: relPath }
-          const fallback = await execCommand('/gzh-read ' + relPath + ' --json')
           if (!fallback.ok) return { ok: false, error: fallback.text }
-          const data = parseJsonText(fallback.text)
           if (data === null) return { ok: false, error: '宿主读取返回不是 JSON' }
-          if (data.ok !== true) return { ok: false, error: String(data.code || data.error || '读取失败') }
-          return { ok: true, text: String(data.text || ''), lines: data.lines, bytes: data.bytes, path: relPath }
+          return { ok: false, error: String(data.code || data.error || '读取失败') }
         },
         [readPrefix, readWorkspaceFile, execCommand],
       )
@@ -3562,13 +3566,10 @@ body[data-ds-dark-theme] .gzw-avatar.on{color:#04231e}
         if (doc.ok !== true) return h(Empty, { title: '读不到 ' + lib.path, text: readErrorText(doc.error) })
         if (lib.id === 'inbox') {
           const sections = parseInbox(doc.text)
-          const hasAny = Object.values(sections).some((list) => list.length > 0)
-          if (!hasAny) {
-            return h(Empty, {
-              title: 'inbox 还是空的',
-              text: '在下面写一条，或对 Agent 说「记一笔：……」——它会落进「未处理」区。',
-              action: h(Btn, { size: 'sm', icon: 'plus', onClick: () => setNoteDraft((value) => (value === '' ? '记一笔：' : value)) }, '写一条'),
-            })
+          const hints = {
+            '未处理': '还没被任何文章用过的念头；在下面写一条，或对 Agent 说「记一笔：……」',
+            '已用': '被哪篇文章用了，方便回溯',
+            '沉淀': '出现过两次以上的念头，说明是真关心',
           }
           return h(
             'div',
@@ -3577,9 +3578,17 @@ body[data-ds-dark-theme] .gzw-avatar.on{color:#04231e}
               h(
                 'div',
                 { key: name, style: { marginBottom: 'var(--gzw-s5)' } },
-                h('div', { className: 'gzw-label', style: { marginBottom: 'var(--gzw-s2)' } }, name + '（' + sections[name].length + '）'),
+                h(
+                  'div',
+                  { className: 'gzw-row', style: { marginBottom: 'var(--gzw-s2)' } },
+                  h('span', { className: 'gzw-label' }, name),
+                  h('span', { className: 'gzw-mono', style: { color: 'var(--gzw-ink-3)' } }, String(sections[name].length)),
+                  name === '未处理'
+                    ? h(Btn, { size: 'sm', variant: 'ghost', icon: 'plus', onClick: () => setNoteDraft((value) => (value === '' ? '记一笔：' : value)) }, '写一条')
+                    : null,
+                ),
                 sections[name].length === 0
-                  ? h('div', { className: 'gzw-dim' }, '空')
+                  ? h('div', { className: 'gzw-dim', style: { paddingBottom: 'var(--gzw-s3)' } }, hints[name])
                   : h(
                       'div',
                       { className: 'gzw-list' },
