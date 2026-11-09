@@ -50,6 +50,7 @@ window.__ModuleLoader__.load({
   --gzw-info:var(--dsw-alias-link);
   --gzw-info-soft:color-mix(in srgb,var(--dsw-alias-link) 12%,transparent);
   --gzw-info-line:color-mix(in srgb,var(--dsw-alias-link) 26%,transparent);
+  --gzw-tool:color-mix(in srgb,var(--dsw-alias-link) 46%,var(--gzw-ink-2));
   --gzw-decision:color-mix(in srgb,var(--dsw-alias-state-done-primary) 74%,var(--dsw-alias-label-primary));
   --gzw-decision-soft:color-mix(in srgb,var(--dsw-alias-state-done-primary) 10%,transparent);
 
@@ -69,6 +70,8 @@ window.__ModuleLoader__.load({
   height:100%;
   overflow:auto;
   box-sizing:border-box;
+  display:flex;
+  flex-direction:column;
   background:var(--gzw-page);
   color:var(--gzw-ink);
   font-family:var(--gzw-font);
@@ -101,7 +104,7 @@ window.__ModuleLoader__.load({
 
 /* ============================ 顶栏 ============================ */
 .gzw-top{
-  position:sticky;top:0;z-index:30;
+  flex:none;position:sticky;top:0;z-index:30;
   background:color-mix(in srgb,var(--gzw-page) 82%,transparent);
   backdrop-filter:blur(20px) saturate(140%);
   -webkit-backdrop-filter:blur(20px) saturate(140%);
@@ -148,7 +151,7 @@ window.__ModuleLoader__.load({
 .gzw-icon-btn[disabled]{opacity:.35;cursor:default}
 
 /* ============================ 页面骨架 ============================ */
-.gzw-content{max-width:1200px;margin:0 auto;padding:0 var(--gzw-s8) 72px}
+.gzw-content{max-width:1200px;width:100%;margin:0 auto;padding:0 var(--gzw-s8) 72px;flex:1 0 auto}
 .gzw-sec{display:flex;flex-direction:column}
 .gzw-panel{border-top:1px solid var(--gzw-line-soft);padding:var(--gzw-s6) 0}
 .gzw-panel:first-child{border-top:0;padding-top:0}
@@ -159,6 +162,7 @@ window.__ModuleLoader__.load({
 .gzw-panel-actions{margin-left:auto;display:flex;align-items:center;gap:var(--gzw-s2)}
 .gzw-grid{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(300px,1fr);gap:var(--gzw-s9,40px);align-items:start}
 .gzw-grid.even{grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--gzw-s8)}
+.gzw-grid.three{grid-template-columns:repeat(3,minmax(0,1fr));gap:var(--gzw-s7)}
 .gzw-stack{display:flex;flex-direction:column;gap:var(--gzw-s6);min-width:0}
 
 /* ============================ 报头 ============================ */
@@ -181,11 +185,8 @@ window.__ModuleLoader__.load({
 .gzw-pmeta b{color:var(--gzw-ink-2);font-weight:500}
 .gzw-pmeta-sep{width:3px;height:3px;border-radius:50%;background:var(--gzw-line-strong);flex:none}
 .gzw-ph-side{flex:none;display:flex;flex-direction:column;align-items:flex-end;gap:9px;text-align:right;padding-top:6px;min-width:120px}
-.gzw-progress{display:flex;align-items:baseline;gap:7px}
-.gzw-progress-num{font-size:29px;line-height:1;font-weight:600;letter-spacing:-.02em;font-variant-numeric:tabular-nums;font-feature-settings:"tnum"}
-.gzw-progress-cap{font-size:11.5px;color:var(--gzw-ink-3)}
-.gzw-progress-bar{width:120px;height:2px;border-radius:99px;background:var(--gzw-surface-3);overflow:hidden}
-.gzw-progress-bar>span{display:block;height:100%;border-radius:99px;background:var(--gzw-accent)}
+.gzw-next{font-size:12.5px;color:var(--gzw-ink-3);white-space:nowrap}
+.gzw-next b{color:var(--gzw-ink-2);font-weight:600;margin-left:2px}
 
 
 /* ============================ 进度轨 ============================ */
@@ -196,7 +197,7 @@ window.__ModuleLoader__.load({
   display:flex;flex-direction:column;gap:9px;flex:1 1 0;min-width:0;text-align:left;
 }
 .gzw-rail-bar{height:2px;border-radius:2px;background:var(--gzw-surface-3);transition:background var(--gzw-dur) var(--gzw-ease)}
-.gzw-rail-step.done .gzw-rail-bar{background:color-mix(in srgb,var(--gzw-accent) 26%,transparent)}
+.gzw-rail-step.done .gzw-rail-bar{background:color-mix(in srgb,var(--gzw-accent) 46%,transparent)}
 .gzw-rail-step.active .gzw-rail-bar{background:var(--gzw-accent);height:3px;margin-top:-.5px}
 .gzw-rail-name{
   font-size:12px;line-height:16px;color:var(--gzw-ink-3);white-space:nowrap;
@@ -298,7 +299,7 @@ window.__ModuleLoader__.load({
 }
 .gzw-sheet-head{margin-bottom:var(--gzw-s5);padding-bottom:var(--gzw-s4);border-bottom:1px solid var(--gzw-line-soft)}
 .gzw-sheet-title{font-family:var(--gzw-serif);font-size:21px;font-weight:600;letter-spacing:.01em;line-height:1.5;margin-bottom:6px}
-.gzw-sheet-meta{font-size:11.5px;color:var(--gzw-ink-3);line-height:1.7}
+.gzw-sheet-meta{font-size:11.5px;color:var(--gzw-ink-3);line-height:1.7;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
 .gzw-md{font-size:13.5px;line-height:1.85;color:var(--gzw-ink-2)}
 .gzw-sheet .gzw-md{font-family:var(--gzw-serif);font-size:16.5px;line-height:2.05;letter-spacing:.008em;color:var(--gzw-ink)}
 .gzw-md-p{margin:0 0 13px}
@@ -329,7 +330,6 @@ window.__ModuleLoader__.load({
 .gzw-md a{color:var(--gzw-accent-strong);text-decoration:none;border-bottom:1px solid var(--gzw-accent-line)}
 
 /* ============================ 图表 ============================ */
-.gzw-chart{width:100%;display:block;overflow:visible}
 .gzw-hist{display:flex;align-items:flex-end;gap:var(--gzw-s4);height:124px;padding-top:var(--gzw-s2)}
 .gzw-hist-col{flex:1;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;gap:6px;height:100%;min-width:0}
 .gzw-hist-track{display:flex;align-items:flex-end;justify-content:center;width:100%;height:76px}
@@ -346,11 +346,13 @@ window.__ModuleLoader__.load({
 
 .gzw-bars{display:flex;flex-direction:column;gap:9px;min-width:0}
 .gzw-bar-row{display:grid;grid-template-columns:minmax(72px,128px) minmax(0,1fr) 68px;align-items:center;gap:var(--gzw-s3);font-size:11.5px}
+.gzw-grid.three .gzw-bar-row{grid-template-columns:minmax(60px,92px) minmax(0,1fr) 44px;gap:var(--gzw-s2)}
 .gzw-bar-label{color:var(--gzw-ink-2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .gzw-bar-track{display:block;height:5px;border-radius:999px;background:var(--gzw-surface-3);overflow:hidden}
 .gzw-bar-fill{display:block;height:100%;border-radius:999px;background:var(--gzw-warn);opacity:.8;transition:width var(--gzw-dur) var(--gzw-ease)}
 .gzw-bar-fill.fail{background:var(--gzw-danger)}
 .gzw-bar-fill.info{background:var(--gzw-info);opacity:.5}
+.gzw-bar-fill.tool{background:var(--gzw-tool);opacity:.75}
 .gzw-bar-count{text-align:right;color:var(--gzw-ink-2);font-variant-numeric:tabular-nums;font-family:var(--gzw-mono);font-size:11px}
 .gzw-bar-count small{color:var(--gzw-ink-3)}
 
@@ -363,7 +365,7 @@ window.__ModuleLoader__.load({
 /* 事件分桶柱 */
 .gzw-mbars{display:flex;align-items:flex-end;gap:2px;margin-top:4px}
 .gzw-mbars-col{flex:1 1 0;height:100%;display:flex;align-items:flex-end;min-width:2px}
-.gzw-mbars-bar{display:block;width:100%;min-height:2px;border-radius:2px 2px 0 0;background:color-mix(in srgb,var(--gzw-ink) 20%,transparent);transition:background var(--gzw-dur) var(--gzw-ease)}
+.gzw-mbars-bar{display:block;width:100%;min-height:3px;border-radius:2px 2px 0 0;background:color-mix(in srgb,var(--gzw-ink) 30%,transparent);transition:background var(--gzw-dur) var(--gzw-ease)}
 .gzw-mbars-col:hover .gzw-mbars-bar{background:var(--gzw-ink)}
 .gzw-mbars-bar.zero{background:var(--gzw-surface-3)}
 
@@ -383,7 +385,7 @@ window.__ModuleLoader__.load({
 
 /* ============================ 列表 ============================ */
 .gzw-list{display:flex;flex-direction:column}
-.gzw-li{display:flex;align-items:center;gap:var(--gzw-s3);padding:10px 8px;border-bottom:1px solid var(--gzw-line-soft);min-width:0;margin:0 -8px;border-radius:8px;transition:background var(--gzw-dur) var(--gzw-ease)}
+.gzw-li{display:flex;align-items:center;gap:var(--gzw-s3);padding:10px 12px;border-bottom:1px solid var(--gzw-line-soft);min-width:0;margin:0 -8px;border-radius:8px;transition:background var(--gzw-dur) var(--gzw-ease)}
 .gzw-li:last-child{border-bottom:0}
 .gzw-li:hover{background:var(--gzw-surface-2)}
 .gzw-li-main{flex:1;min-width:0}
@@ -407,7 +409,7 @@ window.__ModuleLoader__.load({
 .gzw-tl-node{position:relative;width:6px;height:6px;border-radius:50%;background:var(--gzw-ink-3);margin-top:3px;box-shadow:0 0 0 3px var(--gzw-page);z-index:1;flex:none}
 .gzw-tl-node.user{background:var(--gzw-decision)}
 .gzw-tl-node.review{background:var(--gzw-accent);box-shadow:0 0 0 3px var(--gzw-accent-soft)}
-.gzw-tl-node.tool{background:var(--gzw-info)}
+.gzw-tl-node.tool{background:var(--gzw-tool)}
 .gzw-tl-node.error{background:var(--gzw-danger)}
 .gzw-tl-node.decision{background:var(--gzw-warn)}
 .gzw-tl-node.result{background:var(--gzw-decision)}
@@ -417,7 +419,7 @@ window.__ModuleLoader__.load({
 .gzw-tl-line{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:3px}
 .gzw-tl-kind{font-size:10px;letter-spacing:.02em;line-height:16px;padding:0 6px;border-radius:5px;background:var(--gzw-surface-2);color:var(--gzw-ink-3);font-weight:500;white-space:nowrap;border:1px solid var(--gzw-line-soft)}
 .gzw-tl-kind.user,.gzw-tl-kind.review,.gzw-tl-kind.say{background:var(--gzw-accent-soft);color:var(--gzw-accent-strong);border-color:transparent}
-.gzw-tl-kind.tool{background:var(--gzw-info-soft);color:var(--gzw-info);border-color:transparent}
+.gzw-tl-kind.tool{background:var(--gzw-surface-2);color:var(--gzw-ink-2);border-color:var(--gzw-line-soft)}
 .gzw-tl-kind.error{background:var(--gzw-danger-soft);color:var(--gzw-danger);border-color:transparent}
 .gzw-tl-kind.decision{background:var(--gzw-warn-soft);color:var(--gzw-warn);border-color:transparent}
 .gzw-tl-kind.result{background:var(--gzw-decision-soft);color:var(--gzw-decision);border-color:transparent}
@@ -429,8 +431,8 @@ window.__ModuleLoader__.load({
 .gzw-issues{display:flex;flex-direction:column;max-height:264px;overflow:auto}
 .gzw-issue{
   display:grid;grid-template-columns:44px minmax(0,1fr);gap:var(--gzw-s2);
-  font-size:11.5px;line-height:1.65;padding:7px 8px;margin:0 -8px;border:0;border-bottom:1px solid var(--gzw-line-soft);
-  text-align:left;width:calc(100% + 16px);background:transparent;color:inherit;cursor:pointer;border-radius:7px;
+  font-size:11.5px;line-height:1.65;padding:7px 8px;margin:0;border:0;border-bottom:1px solid var(--gzw-line-soft);
+  text-align:left;width:100%;background:transparent;color:inherit;cursor:pointer;border-radius:7px;
   transition:background var(--gzw-dur) var(--gzw-ease);
 }
 .gzw-issue:hover{background:var(--gzw-surface-2)}
@@ -520,7 +522,11 @@ window.__ModuleLoader__.load({
 .gzw-sheet-head{margin-bottom:var(--gzw-s5);padding-bottom:var(--gzw-s4);border-bottom:1px solid var(--gzw-line-soft)}
 
 /* 四库：页签行 + 三栏看板 */
-.gzw-tabsline{display:flex;align-items:center;gap:var(--gzw-s3);padding:0 0 var(--gzw-s5);border-top:1px solid var(--gzw-line-soft);margin-top:0;padding-top:var(--gzw-s5)}
+.gzw-tabsline{display:flex;align-items:center;gap:var(--gzw-s3);padding:0 0 var(--gzw-s5)}
+.gzw-doc{max-width:760px}
+.gzw-column{max-width:820px}
+.gzw-newarticle{display:grid;grid-template-columns:minmax(0,560px) 168px;gap:var(--gzw-s3);align-items:end;justify-content:start;padding:var(--gzw-s2) 0 var(--gzw-s5)}
+.gzw-newarticle-main{min-width:0}
 .gzw-composer{display:grid;grid-template-columns:minmax(0,1fr) 216px;gap:var(--gzw-s3);align-items:start}
 .gzw-composer-side{display:flex;flex-direction:column;gap:var(--gzw-s2)}
 /* 四库：三栏看板 */
@@ -552,14 +558,15 @@ window.__ModuleLoader__.load({
 }
 @keyframes gzw-toast-in{from{opacity:0;transform:translate(-50%,6px)}to{opacity:1;transform:translate(-50%,0)}}
 .gzw-footer{
-  max-width:1200px;margin:0 auto;display:flex;align-items:center;gap:var(--gzw-s3);flex-wrap:wrap;
+  flex:none;max-width:1200px;width:100%;margin:0 auto;display:flex;align-items:center;gap:var(--gzw-s3);flex-wrap:wrap;
   padding:var(--gzw-s4) var(--gzw-s8) var(--gzw-s6);border-top:1px solid var(--gzw-line-soft);
   font-size:11px;color:var(--gzw-ink-3);
 }
 .gzw-footer .repo{font-family:var(--gzw-mono);font-size:10.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100%}
 .gzw-kbd{display:inline-block;min-width:18px;text-align:center;padding:1px 5px;border-radius:4px;border:1px solid var(--gzw-line-strong);background:var(--gzw-surface-2);color:var(--gzw-ink-2);font-family:var(--gzw-mono);font-size:10px}
 .gzw-help-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px var(--gzw-s6)}
-.gzw-help-row{display:flex;align-items:center;gap:var(--gzw-s2);font-size:12px;color:var(--gzw-ink-2);min-width:0}
+.gzw-help-list{display:flex;flex-direction:column;gap:10px}
+.gzw-help-row{display:flex;align-items:center;gap:10px;font-size:12.5px;color:var(--gzw-ink-2);min-width:0}
 .gzw-help-row .gzw-kbd{flex:none;white-space:nowrap}
 .gzw-help{position:fixed;inset:0;z-index:70;display:grid;place-items:center;background:color-mix(in srgb,var(--dsw-static-neutral-1000) 34%,transparent);backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px)}
 .gzw-help-card{width:min(560px,92vw);border:1px solid var(--gzw-line);border-radius:16px;background:var(--gzw-surface);box-shadow:var(--gzw-shadow-lg);padding:var(--gzw-s4) var(--gzw-s5) var(--gzw-s5)}
@@ -569,7 +576,7 @@ window.__ModuleLoader__.load({
 /* ============================ 响应式 ============================ */
 .gzw-root{container-type:inline-size}
 @container (max-width:1120px){
-  .gzw-grid,.gzw-grid.even{grid-template-columns:minmax(0,1fr);gap:var(--gzw-s6)}
+  .gzw-grid,.gzw-grid.even,.gzw-grid.three{grid-template-columns:minmax(0,1fr);gap:var(--gzw-s6)}
   .gzw-split{grid-template-columns:minmax(0,1fr)}
   .gzw-ptitle{font-size:26px}
   .gzw-sheet{padding:var(--gzw-s6) var(--gzw-s7)}
@@ -591,6 +598,7 @@ window.__ModuleLoader__.load({
   .gzw-sheet .gzw-md{font-size:15.5px;line-height:1.95}
   .gzw-board{grid-template-columns:minmax(0,1fr)}
   .gzw-composer{grid-template-columns:minmax(0,1fr)}
+  .gzw-newarticle{grid-template-columns:minmax(0,1fr)}
   .gzw-help-grid{grid-template-columns:minmax(0,1fr)}
   .gzw-footer{padding:var(--gzw-s4)}
 }
@@ -735,6 +743,16 @@ window.__ModuleLoader__.load({
       if (row === null || typeof row !== 'object') return '(无标题)'
       const title = row.title ?? row.name ?? row.projections?.values?.title ?? row.projection?.values?.title
       return typeof title === 'string' && title.trim() !== '' ? title : '(无标题)'
+    }
+
+    // 子 Agent 的会话不是「这一篇」的专用会话：既不能当读取源，也不能当指令通道，
+    // 否则会命中 session/agent-busy（subagent 需要 parent address）。
+    function isSubagentRow(row) {
+      if (row === null || typeof row !== 'object') return false
+      if (row.origin === 'subagent') return true
+      if (row.parentSessionId !== undefined && row.parentSessionId !== null) return true
+      const sub = row.projections?.values?.subagent
+      return sub !== undefined && sub !== null
     }
 
     function sessionRows(value) {
@@ -1531,7 +1549,7 @@ window.__ModuleLoader__.load({
             'div',
             { className: 'gzw-bar-row', key: item.name + index },
             h('span', { className: 'gzw-bar-label', title: item.name }, item.name),
-            h('span', { className: 'gzw-bar-track' }, h('span', { className: 'gzw-bar-fill', style: { width: Math.max(4, (item.count / max) * 100) + '%', background: 'var(--gzw-info)' } })),
+            h('span', { className: 'gzw-bar-track' }, h('span', { className: 'gzw-bar-fill tool', style: { width: Math.max(4, (item.count / max) * 100) + '%' } })),
             h('span', { className: 'gzw-bar-count' }, item.count),
           ),
         ),
@@ -1809,7 +1827,7 @@ window.__ModuleLoader__.load({
       )
 
       const pickControlSession = React.useCallback((rows, boundId, rootCwd) => {
-        const pool = rows.filter((row) => (rootCwd !== '' ? sessionCwdOf(row) === rootCwd : true))
+        const pool = rows.filter((row) => !isSubagentRow(row) && (rootCwd !== '' ? sessionCwdOf(row) === rootCwd : true))
         const others = pool.filter((row) => sessionIdOf(row) !== boundId)
         const blankIdle = others.find((row) => row.blank === true && row.running !== true)
         const idle = others.find((row) => row.running !== true)
@@ -1922,7 +1940,8 @@ window.__ModuleLoader__.load({
           }
           setSessions(rows)
           const rootCwd = rows.map((row) => sessionCwdOf(row)).find((cwd) => /Andiii碎碎念[\\/]?$/.test(cwd)) ?? sessionCwdOf(rows[0]) ?? ''
-          const preferred = rows.find((row) => sessionCwdOf(row) === rootCwd) ?? rows[0]
+          const readable = rows.filter((row) => !isSubagentRow(row))
+          const preferred = readable.find((row) => sessionCwdOf(row) === rootCwd) ?? readable[0] ?? rows[0]
           const readId = sessionIdOf(preferred) ?? ''
           setReadSessionId(readId)
           log('会话列表：' + rows.length + ' 条，读取会话 ' + (readId === '' ? '无' : shortId(readId)))
@@ -2149,8 +2168,7 @@ window.__ModuleLoader__.load({
         .filter((row) => {
           const cwd = sessionCwdOf(row)
           if (cwd.includes('/default-workspace')) return false
-          if (row.origin === 'subagent' || row.parentSessionId !== undefined) return false
-          if (row.projections?.values?.subagent !== undefined && row.projections?.values?.subagent !== null) return false
+          if (isSubagentRow(row)) return false
           if (workspaceRoot !== '' && cwd !== workspaceRoot && cwd !== repoRoot && !cwd.startsWith(workspaceRoot + '/')) return false
           if (sessionFilter.trim() !== '') {
             const haystack = (sessionTitleOf(row) + ' ' + String(sessionIdOf(row) ?? '') + ' ' + cwd).toLowerCase()
@@ -2647,7 +2665,9 @@ window.__ModuleLoader__.load({
       // ---------------- 页头 ----------------
       // 所有页面共用一个页头：眉标 / 标题 / 一句话说明 / 元信息 / 右侧状态。
       function pageHead({ eyebrow, title, desc, meta, side, small }) {
-        const marks = (Array.isArray(eyebrow) ? eyebrow : [eyebrow]).filter((item) => item !== null && item !== undefined && item !== '')
+        const raw = (Array.isArray(eyebrow) ? eyebrow : [eyebrow]).filter((item) => item !== null && item !== undefined && item !== '')
+        const hasDot = raw.length > 0 && raw[0] !== null && raw[0] !== undefined && raw[0].props !== undefined && String(raw[0].props.className || '').includes('gzw-eyebrow-dot')
+        const marks = raw.length === 0 || hasDot ? raw : [h('span', { className: 'gzw-eyebrow-dot', key: 'auto-dot' }), ...raw]
         return h(
           'div',
           { className: 'gzw-pagehead' },
@@ -2704,8 +2724,7 @@ window.__ModuleLoader__.load({
           desc: article === null ? stateError || '检查 gzhflow 仓库路径与绑定会话的工作目录。' : meta.desc,
           meta: metaLine(facts),
           side: [
-            h('div', { className: 'gzw-progress', key: 'p' }, h('span', { className: 'gzw-progress-num' }, doneCount), h('span', { className: 'gzw-progress-cap' }, '/ 7 阶段完成')),
-            h('div', { className: 'gzw-dim', key: 'n' }, nextMeta === null ? '最后一阶段' : '下一阶段 ' + CIRCLED[nextMeta.no - 1] + ' ' + nextMeta.name),
+            h('div', { className: 'gzw-next', key: 'n' }, nextMeta === null ? '已是最后一阶段' : '下一阶段 ', nextMeta === null ? null : h('b', {}, CIRCLED[nextMeta.no - 1] + ' ' + nextMeta.name)),
           ],
         })
       }
@@ -2738,8 +2757,6 @@ window.__ModuleLoader__.load({
             h('span', {}, doneCount + ' / 7 已完成'),
             h('span', { className: 'gzw-pmeta-sep' }),
             h('span', {}, artifacts.length + ' 项产物'),
-            h('span', { className: 'gzw-pmeta-sep' }),
-            h('span', {}, '点上方阶段可直接切换'),
           ),
         )
       }
@@ -2813,20 +2830,16 @@ window.__ModuleLoader__.load({
       function renderNewArticle() {
         return h(
           'div',
-          { className: 'gzw-toolbar', style: { borderTop: 0, alignItems: 'flex-start' } },
+          { className: 'gzw-newarticle' },
           h(
             'div',
-            { style: { flex: 1, minWidth: '240px' } },
-            h('div', { className: 'gzw-label', style: { marginBottom: '6px' } }, '新写一篇'),
+            { className: 'gzw-newarticle-main' },
+            h('div', { className: 'gzw-label', style: { marginBottom: '8px' } }, '新写一篇'),
             h('input', { className: 'gzw-input', value: newTopic, placeholder: '主题：例如「AI 搜索这一年」', onChange: (event) => setNewTopic(event.target.value) }),
-            h('div', { className: 'gzw-dim', style: { marginTop: '6px' } }, '工作台只开一个专用会话并发启动指令；state.md 由 Agent 自己改。'),
+            h('div', { className: 'gzw-dim', style: { marginTop: '8px' } }, '工作台只开一个专用会话并发启动指令；state.md 由 Agent 自己改。'),
           ),
-          h(
-            'div',
-            { className: 'gzw-row', style: { alignSelf: 'center' } },
-            h(Btn, { variant: 'brand', icon: 'send', onClick: () => startNewArticle(), disabled: newBusy || newTopic.trim() === '' }, newBusy ? '创建中…' : '创建并启动'),
-          ),
-          newError === '' ? null : h('div', { className: 'gzw-error', style: { flexBasis: '100%' } }, newError),
+          h(Btn, { variant: 'brand', wide: true, icon: 'send', onClick: () => startNewArticle(), disabled: newBusy || newTopic.trim() === '' }, newBusy ? '创建中…' : '创建并启动'),
+          newError === '' ? null : h('div', { className: 'gzw-error', style: { gridColumn: '1 / -1' } }, newError),
         )
       }
 
@@ -2838,7 +2851,7 @@ window.__ModuleLoader__.load({
           { k: '正文', v: d === null ? '—' : num(d.chars), unit: '字', sub: d === null ? '还没有草稿' : d.paragraphs + ' 段' },
           { k: '句数', v: d === null ? '—' : d.sentences, unit: '', sub: d === null ? '' : '平均 ' + d.avgSentence + ' 字' },
           { k: '阅读', v: d === null ? '—' : d.readMinutes, unit: '分钟', sub: d === null ? '' : '约 ' + d.chars + ' 字' },
-          { k: '体检', v: gateInfo === null ? '未跑' : gateInfo.running ? '…' : gateInfo.failed ? '失败' : String(gateInfo.score ?? '—'), unit: gateInfo === null || gateInfo.running || gateInfo.failed ? '' : '/100', sub: gateInfo === null ? '还没跑' : gateInfo.failed ? '未能运行' : 'FAIL ' + (gateInfo.fails?.length ?? 0) + ' · WARN ' + (gateInfo.warns?.length ?? 0) },
+          { k: '体检', v: gateInfo === null ? '未跑' : gateInfo.running ? '…' : gateInfo.failed ? '失败' : String(gateInfo.score ?? '—'), unit: gateInfo === null || gateInfo.running || gateInfo.failed ? '' : '/100', sub: gateInfo === null ? '还没跑' : gateInfo.failed ? '未能运行' : 'FAIL ' + (gateInfo.fails?.length ?? 0) + ' · WARN ' + (gateInfo.warns?.length ?? 0), muted: gateInfo === null || gateInfo.failed },
           { k: '产物', v: artifacts.length, unit: '项', sub: artifacts.length === 0 ? 'generated/ 空' : '最近 ' + relTime(artifacts[artifacts.length - 1].mtimeMs) },
           { k: '轨迹', v: stats.total, unit: '步', sub: stats.total === 0 ? '还没绑会话' : stats.tools + ' 工具 · ' + stats.errors + ' 失败' },
         ]
@@ -2850,7 +2863,7 @@ window.__ModuleLoader__.load({
               'div',
               { className: 'gzw-strip-item', key: 's' + index },
               h('div', { className: 'gzw-strip-k' }, item.k),
-              h('div', { className: 'gzw-strip-v' }, item.v, item.unit === '' ? null : h('small', {}, item.unit)),
+              h('div', { className: 'gzw-strip-v', style: item.muted ? { color: 'var(--gzw-ink-3)' } : undefined }, item.v, item.unit === '' ? null : h('small', {}, item.unit)),
               h('div', { className: 'gzw-strip-sub' }, item.sub),
             ),
           ),
@@ -2901,7 +2914,7 @@ window.__ModuleLoader__.load({
             h(
               'div',
               { className: 'gzw-row' },
-              h('span', { className: 'gzw-chip ' + (errors.length > 0 ? 'danger' : 'accent') }, h('b', {}, errors.length), ' ERROR'),
+              h('span', { className: 'gzw-chip ' + (errors.length > 0 ? 'danger' : '') }, h('b', {}, errors.length), ' ERROR'),
               h('span', { className: 'gzw-chip warn' }, h('b', {}, warns.length), ' WARN'),
               h('span', { className: 'gzw-chip' }, 'span leaf ', h('b', {}, String(info.spanLeafCount ?? '?'))),
             ),
@@ -2957,7 +2970,7 @@ window.__ModuleLoader__.load({
               h(
                 'div',
                 { className: 'gzw-row' },
-                h('span', { className: 'gzw-chip ' + (fails.length > 0 ? 'danger' : 'accent') }, h('b', {}, fails.length), ' FAIL'),
+                h('span', { className: 'gzw-chip ' + (fails.length > 0 ? 'danger' : '') }, h('b', {}, fails.length), ' FAIL'),
                 h('span', { className: 'gzw-chip warn' }, h('b', {}, warns.length), ' WARN'),
               ),
               h('div', { className: 'gzw-dim' }, '共 ' + info.hits + ' 条提示 · 点下方明细可定位正文'),
@@ -3178,6 +3191,7 @@ window.__ModuleLoader__.load({
         const hasMetrics = d !== null
 
         const layoutItem = artifactById('layout')
+        const anchorItem = artifactById('anchors')
         let body
         if (stage === 1) {
           body = [
@@ -3188,10 +3202,15 @@ window.__ModuleLoader__.load({
                 'div',
                 { className: 'gzw-panel-head' },
                 h('div', { className: 'gzw-panel-title' }, h(Icon, { name: 'layers', size: 14 }), '素材锚点清单'),
-                h('div', { className: 'gzw-panel-sub' }, '从访谈 / 资料里挑出值得写的点，定下素材边界'),
+                h('div', { className: 'gzw-panel-sub' }, anchorItem === undefined ? '从访谈 / 资料里挑出值得写的点，定下素材边界' : anchorItem.path + ' · ' + humanBytes(anchorItem.bytes)),
               ),
-              h('div', { className: 'gzw-note plain', style: { marginBottom: 'var(--gzw-s5)' } }, '清单还没生成时，先让 Agent 在会话里出这一版；工作台不代写素材。'),
-              renderArtifactBlock('anchors', 'md'),
+              h(
+                'div',
+                { className: 'gzw-column' },
+                anchorItem === undefined
+                  ? h('div', {}, h('div', { className: 'gzw-note plain', style: { marginBottom: 'var(--gzw-s5)' } }, '清单还没生成时，先让 Agent 在会话里出这一版；工作台不代写素材。'), h(Empty, { icon: 'layers', title: '还没有素材锚点清单', text: '这一阶段的产物由 Agent 写进 generated/' }))
+                  : renderDoc(anchorItem, 'md'),
+              ),
             ),
           ]
         } else if (stage === 2 || stage === 3) {
@@ -3202,12 +3221,13 @@ window.__ModuleLoader__.load({
               'div',
               { className: 'gzw-panel-head' },
               h('div', { className: 'gzw-panel-title' }, h(Icon, { name: 'book', size: 14 }), stage === 3 ? '草稿全文' : '全文'),
-              h('div', { className: 'gzw-panel-sub' }, stage === 3 ? '去味改的是同一份 generated/draft.md' : '只读预览；通过 / 退回在总览的命令条里'),
+              h('div', { className: 'gzw-panel-sub' }, stage === 3 ? '去味改的是同一份 generated/draft.md' : '只读预览'),
               h(
                 'div',
                 { className: 'gzw-panel-actions' },
                 h(Btn, { size: 'sm', variant: 'ghost', icon: 'spark', onClick: () => runGate('draft'), disabled: gateBusy || readSessionId === '' }, '体检'),
                 h(Btn, { size: 'sm', variant: 'ghost', icon: 'copy', onClick: () => copyText(draft?.body ?? '', '正文已复制') }, '复制'),
+                h(Btn, { size: 'sm', variant: 'ghost', icon: 'arrow', onClick: () => setView('overview') }, '去总览处理'),
               ),
             ),
             renderSheet(),
@@ -3319,7 +3339,7 @@ window.__ModuleLoader__.load({
                         {},
                         h('div', { className: 'gzw-label', style: { marginBottom: '8px' } }, '排版校验'),
                         h('div', { className: 'gzw-dim', style: { marginBottom: '8px' } }, 'validate_gzh_html.py 会检查 span leaf 结构与样式白名单。'),
-                        h(Btn, { size: 'sm', wide: true, onClick: () => runGate('html'), disabled: gateBusy || artifactById('layout') === undefined }, gateBusy ? '校验中…' : '跑排版校验'),
+                        h(Btn, { size: 'sm', icon: 'shield', onClick: () => runGate('html'), disabled: gateBusy || artifactById('layout') === undefined }, gateBusy ? '校验中…' : '跑排版校验'),
                       ),
                       layoutResult === '' ? null : h('pre', { className: 'gzw-mono', style: { maxHeight: '160px', overflow: 'auto', whiteSpace: 'pre-wrap' } }, layoutResult),
                     ),
@@ -3367,7 +3387,7 @@ window.__ModuleLoader__.load({
       // ---------------- 轨迹 ----------------
       function renderTraceView() {
         const kindOrder = [
-          { key: 'tool', label: '工具调用', color: 'var(--gzw-info)' },
+          { key: 'tool', label: '工具调用', color: 'var(--gzw-tool)' },
           { key: 'say', label: '助手发言', color: 'var(--gzw-accent)' },
           { key: 'user', label: '用户消息', color: 'var(--gzw-decision)' },
           { key: 'decision', label: '决策', color: 'var(--gzw-warn)' },
@@ -3385,6 +3405,7 @@ window.__ModuleLoader__.load({
         }, 0)
         if (otherCount > 0) segments.push({ key: 'other', label: '其他', color: 'var(--gzw-line-strong)', value: otherCount })
         const seriesMax = Math.max(1, ...(stats.series.values ?? [1]))
+        const activeFilters = filters.filter((filter) => filter.id === 'all' || filterCount(filter.id) > 0)
 
         const sessionLine =
           traceSessionId !== ''
@@ -3415,12 +3436,6 @@ window.__ModuleLoader__.load({
           { className: 'gzw-panel' },
           h(
             'div',
-            { className: 'gzw-panel-head' },
-            h('div', { className: 'gzw-panel-title' }, h(Icon, { name: 'gauge', size: 14 }), '这一步的概况'),
-            h('div', { className: 'gzw-panel-sub' }, binding === null ? '绑定会话后统计才完整' : '只统计本会话可见事件'),
-          ),
-          h(
-            'div',
             { className: 'gzw-strip' },
             h('div', { className: 'gzw-strip-item' }, h('div', { className: 'gzw-strip-k' }, '可见步骤'), h('div', { className: 'gzw-strip-v' }, stats.total, h('small', {}, '步')), h('div', { className: 'gzw-strip-sub' }, '本会话')),
             h('div', { className: 'gzw-strip-item' }, h('div', { className: 'gzw-strip-k' }, '轮次'), h('div', { className: 'gzw-strip-v' }, stats.turns, h('small', {}, '轮'))),
@@ -3433,13 +3448,13 @@ window.__ModuleLoader__.load({
             ? null
             : h(
                 'div',
-                { className: 'gzw-grid even', style: { marginTop: 'var(--gzw-s6)' } },
+                { className: 'gzw-grid three', style: { marginTop: 'var(--gzw-s5)' } },
                 h(
                   'div',
                   {},
-                  h('div', { className: 'gzw-label', style: { marginBottom: '10px' } }, '节奏 · 每段区间的事件数'),
-                  h(MiniBars, { values: stats.series.values, height: 64 }),
-                  h('div', { className: 'gzw-rhythm-cap' }, h('span', { className: 'gzw-dim' }, '按时间等分成 ' + (stats.series.values ?? []).length + ' 段'), h('span', { className: 'gzw-dim' }, '峰值 ' + seriesMax + ' 步')),
+                  h('div', { className: 'gzw-label', style: { marginBottom: '10px' } }, '节奏 · 每段事件数'),
+                  h(MiniBars, { values: stats.series.values, height: 56 }),
+                  h('div', { className: 'gzw-rhythm-cap' }, h('span', { className: 'gzw-dim' }, '峰值 ' + seriesMax + ' 步'), h('span', { className: 'gzw-dim' }, (stats.series.values ?? []).length + ' 段')),
                 ),
                 h(
                   'div',
@@ -3470,15 +3485,15 @@ window.__ModuleLoader__.load({
                         ),
                       ),
                 ),
+                stats.tools > 0
+                  ? h(
+                      'div',
+                      {},
+                      h('div', { className: 'gzw-label', style: { marginBottom: '10px' } }, '工具调用 Top'),
+                      h(ToolRank, { rows: traceRows, limit: 4 }),
+                    )
+                  : null,
               ),
-          stats.tools > 0
-            ? h(
-                'div',
-                { style: { marginTop: 'var(--gzw-s6)', maxWidth: '720px' } },
-                h('div', { className: 'gzw-label', style: { marginBottom: '10px' } }, '工具调用 Top'),
-                h(ToolRank, { rows: traceRows }),
-              )
-            : null,
         )
 
         const timelinePanel = h(
@@ -3493,7 +3508,7 @@ window.__ModuleLoader__.load({
           h(
             'div',
             { className: 'gzw-filters' },
-            ...filters.map((filter) =>
+            ...activeFilters.map((filter) =>
               h(
                 'button',
                 { key: filter.id, type: 'button', className: 'gzw-filter' + (traceFilter === filter.id ? ' on' : ''), onClick: () => setTraceFilter(filter.id) },
@@ -3596,7 +3611,7 @@ window.__ModuleLoader__.load({
         const head = pageHead({
           eyebrow: [h('span', { key: 'b' }, '会话绑定')],
           title: bindingReady ? '已绑定这一篇' : '把这一篇绑到一个会话',
-          desc: '工作台只对绑定会话做写操作（通过 / 退回），绑定记录写在 generated/.gzh-workbench/run.json，不含业务状态。',
+          desc: '绑定之后，通过 / 退回这类写操作才会对当前这一篇生效。',
           side: [
             h('span', { key: 'st', className: 'gzw-chip ' + (bindingReady ? 'accent' : 'warn') }, bindingReady ? '写操作就绪' : bindingBlockReason),
           ],
@@ -3659,10 +3674,10 @@ window.__ModuleLoader__.load({
 
       // ---------------- 四库与历史 ----------------
       const LIB_TABS = [
-        { id: 'inbox', label: 'inbox', path: 'assets/inbox.md', icon: 'note', title: '素材收件箱', hint: '还没被任何文章用过的念头；说「记一笔」会落在这里' },
-        { id: 'voice', label: 'voice', path: 'assets/voice.md', icon: 'pen', title: '文风基准', hint: '写这一篇时遵守的语气与节奏' },
-        { id: 'lessons', label: 'lessons', path: 'assets/lessons.md', icon: 'book', title: '经验沉淀', hint: '踩过的坑与有效的做法' },
-        { id: 'learned', label: '手改记录', path: 'assets/learned-edits.md', icon: 'history', title: '手改记录', hint: '机器稿 → 人改稿的差异，阶段⑦回写用' },
+        { id: 'inbox', label: '收件箱', path: 'assets/inbox.md', icon: 'note', title: '素材收件箱', hint: '还没被任何文章用过的念头；说「记一笔」会落在这里' },
+        { id: 'voice', label: '文风', path: 'assets/voice.md', icon: 'pen', title: '文风基准', hint: '写这一篇时遵守的语气与节奏' },
+        { id: 'lessons', label: '经验', path: 'assets/lessons.md', icon: 'book', title: '经验沉淀', hint: '踩过的坑与有效的做法' },
+        { id: 'learned', label: '手改', path: 'assets/learned-edits.md', icon: 'history', title: '手改记录', hint: '机器稿 → 人改稿的差异，阶段⑦回写用' },
         { id: 'history', label: '历史', path: null, icon: 'history', title: '历史文章', hint: '工作区里的历史会话：点「看轨迹」在工作台里回放' },
       ]
 
@@ -3765,14 +3780,14 @@ window.__ModuleLoader__.load({
           )
         }
         const text = String(doc.text || '')
-        if (text.trim() === '') return h(Empty, { title: '这个库还是空的', text: lib.hint })
-        return h('div', { style: { maxHeight: '520px', overflow: 'auto', paddingRight: '4px' } }, h(MarkdownView, { text }))
+        if (text.trim() === '') return h(Empty, { icon: 'book', title: '这个库还是空的', text: lib.hint })
+        return h('div', { className: 'gzw-doc' }, h(MarkdownView, { text }))
       }
 
       function renderLibraries() {
         const lib = LIB_TABS.find((item) => item.id === libTab) ?? LIB_TABS[0]
         const head = pageHead({
-          eyebrow: [h('span', { key: 'l' }, '四库'), h('b', { key: 'k' }, lib.label)],
+          eyebrow: [h('span', { key: 'l' }, '四库')],
           title: lib.title,
           desc: lib.hint,
         })
@@ -3925,7 +3940,7 @@ window.__ModuleLoader__.load({
                 h(
                   'div',
                   { className: 'gzw-panel-actions' },
-                  h(Btn, { size: 'sm', variant: 'ghost', icon: 'arrow', onClick: () => jumpToStage(draft === null ? 2 : 3) }, '读全文'),
+                  h(Btn, { size: 'sm', variant: 'ghost', icon: 'arrow', onClick: () => jumpToStage(2) }, '读全文'),
                 ),
               ),
               draft === null
@@ -4036,7 +4051,7 @@ window.__ModuleLoader__.load({
                 ),
                 h(
                   'div',
-                  { className: 'gzw-help-grid' },
+                  { className: 'gzw-help-list' },
                   ...[
                     ['g 然后 1–6', '切到总览 / 阶段 / 轨迹 / 产物 / 库 / 绑定'],
                     ['r', '刷新全部数据'],
@@ -4145,7 +4160,7 @@ window.__ModuleLoader__.load({
                         'div',
                         { className: 'gzw-li-main' },
                         h('div', { className: 'gzw-li-title' }, ARTIFACT_LABELS[entry.id] ?? entry.id),
-                        h('div', { className: 'gzw-li-sub' }, entry.path),
+                        h('div', { className: 'gzw-li-sub' }, entry.path + '　' + relTime(entry.mtimeMs)),
                       ),
                       h(
                         'div',
