@@ -14,7 +14,7 @@
 | 文件 | 角色 |
 |---|---|
 | `index.js` | 宿主半：注册 `/gzh-env`、`/gzh-bind`、`/gzh-note`、`/gzh-artifacts`、`/gzh-read`、`/gzh-gate`、`/gzh-layout`、`/gzh-publish` 八个命令。凭据只在宿主解析，明文不下发浏览器。 |
-| `client.js` | 客户端半：注册全局 `main` 面板与侧栏入口，纯 JS、无构建链。设计系统与可视化清单见 `../docs/dsh/gzhflow-DSH工作台计划-v2.md`。 |
+| `client.js` | 客户端半：注册全局 `main` 面板与侧栏入口，纯 JS、无构建链。设计系统见 `../docs/dsh/设计逻辑-v4.md`（颜色只取 DSH 语义令牌，正文用宋体、控件用无衬线）。 |
 
 ## 安装
 

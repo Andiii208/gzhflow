@@ -100,6 +100,8 @@ async function main() {
   const port = 9600 + (process.pid % 300)
   const chrome = spawn(CHROME, [
     '--headless=new', '--disable-gpu', '--no-first-run', '--no-default-browser-check',
+    // 在 agent / CI 的沙箱里跑时，Chrome 的渲染进程与 CDP 握手需要这几个开关
+    '--no-sandbox', '--disable-dev-shm-usage', '--remote-allow-origins=*',
     '--remote-debugging-port=' + port, '--user-data-dir=' + PROFILE,
     `--window-size=${width},${height}`, '--hide-scrollbars', 'about:blank',
   ], { stdio: 'ignore' })
@@ -117,10 +119,13 @@ async function main() {
     // dismiss onboarding
     await cdp.eval(`(()=>{const n=[...document.querySelectorAll('*')].filter(x=>(x.textContent||'').trim()==='继续'&&x.children.length===0);n.forEach(x=>{x.click();x.parentElement&&x.parentElement.click()});return n.length})()`)
     await sleep(800)
-    // theme
+    // theme：直接切宿主的主题属性，明暗两套截图都可复现
     if (theme === 'light') {
-      await cdp.eval(`(()=>{try{document.body.removeAttribute('data-ds-dark-theme')}catch(e){};return document.body.getAttribute('data-ds-dark-theme')})()`)
+      await cdp.eval(`(()=>{try{document.body.removeAttribute('data-ds-dark-theme');document.documentElement.removeAttribute('data-ds-dark-theme')}catch(e){};return document.body.getAttribute('data-ds-dark-theme')})()`)
+    } else {
+      await cdp.eval(`(()=>{document.body.setAttribute('data-ds-dark-theme','');document.documentElement.setAttribute('data-ds-dark-theme','');return document.body.getAttribute('data-ds-dark-theme')})()`)
     }
+    await sleep(400)
     // open workbench panel
     await cdp.clickText('公众号工作台')
     await sleep(4500)

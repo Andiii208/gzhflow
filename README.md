@@ -59,7 +59,7 @@ bash dsh-preset/install.sh                                       # macOS / Linux
 
 [`dsh-workbench/`](dsh-workbench/) 是另一个 DSH bundle：装上以后，DSH 侧栏多一个「公众号工作台」入口，点开是一整页控制台——当前篇与七阶段进度、全文审阅（通过 / 退回）、AI 味体检可视化、Agent 操作轨迹、四库只读与「记一笔」、产物时间线、发布 dry-run 与二次确认推送。
 
-它只是**控制面**：状态从 `state.md` / `generated/` / 会话事件派生，确定性动作直接调 `scripts/` 里同一批脚本，创作交给会话里的 Agent；关掉它，CLI 七阶段照样跑。设计与可视化清单见 [`docs/dsh/gzhflow-DSH工作台计划-v2.md`](docs/dsh/gzhflow-DSH工作台计划-v2.md)，安装说明见 [`dsh-workbench/README.md`](dsh-workbench/README.md)。
+它只是**控制面**：状态从 `state.md` / `generated/` / 会话事件派生，确定性动作直接调 `scripts/` 里同一批脚本，创作交给会话里的 Agent；关掉它，CLI 七阶段照样跑。当前设计规格见 [`docs/dsh/设计逻辑-v4.md`](docs/dsh/设计逻辑-v4.md)，安装说明见 [`dsh-workbench/README.md`](dsh-workbench/README.md)。
 
 ## 七阶段流程
 
