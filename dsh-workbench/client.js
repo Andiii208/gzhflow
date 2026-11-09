@@ -543,42 +543,65 @@ window.__ModuleLoader__.load({
 .gzw-rhythm-cap{display:flex;justify-content:space-between;margin-top:5px;font-size:11px;color:var(--gzw-ink-3)}
 
 /* ============================ 首页 ============================ */
-.gzw-home-actions{display:grid;grid-template-columns:minmax(0,1.08fr) minmax(0,1fr);gap:var(--gzw-s4);padding:var(--gzw-s2) 0 var(--gzw-s7)}
-.gzw-home-card{
-  display:flex;flex-direction:column;gap:12px;min-width:0;
-  border:1px solid var(--gzw-line);border-radius:14px;background:var(--gzw-surface);
-  padding:22px 24px;box-shadow:var(--gzw-shadow-sm);
-}
-.gzw-home-card .gzw-label{letter-spacing:.06em}
-.gzw-home-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
-.gzw-home-title{
-  font-family:var(--gzw-serif);font-size:20px;line-height:1.48;font-weight:600;color:var(--gzw-ink);
-  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;
-}
-.gzw-home-meta{display:flex;align-items:center;flex-wrap:wrap;gap:6px 14px;font-size:11.5px;color:var(--gzw-ink-3)}
-.gzw-home-note{font-size:11.5px;line-height:1.7;color:var(--gzw-ink-3)}
-.gzw-home-new{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;align-items:center;margin-top:2px}
-.gzw-home-rules{margin:2px 0 0;padding:0;list-style:none;display:flex;flex-direction:column;gap:5px}
-.gzw-home-rules li{position:relative;padding-left:14px;font-size:11px;line-height:1.65;color:var(--gzw-ink-3)}
-.gzw-home-rules li::before{content:"";position:absolute;left:3px;top:8px;width:4px;height:4px;border-radius:50%;background:var(--gzw-line-strong)}
-.gzw-progress-dots{display:flex;gap:5px;margin-top:2px}
-.gzw-progress-dot{flex:1 1 0;height:3px;border-radius:99px;background:var(--gzw-surface-3)}
-.gzw-progress-dot.done{background:color-mix(in srgb,var(--gzw-accent) 46%,transparent)}
-.gzw-progress-dot.active{background:var(--gzw-accent)}
-.gzw-home-foot{display:flex;align-items:center;gap:8px;margin-top:auto;padding-top:4px}
-.gzw-home-grid{display:grid;grid-template-columns:minmax(0,1.45fr) minmax(0,1fr);gap:var(--gzw-s8);align-items:start}
-.gzw-shortcuts{display:flex;flex-direction:column;margin-top:2px}
-.gzw-shortcut{
-  appearance:none;border:0;border-bottom:1px solid var(--gzw-line-soft);background:transparent;color:inherit;
-  display:flex;align-items:center;gap:11px;padding:11px 8px;margin:0 -8px;border-radius:8px;cursor:pointer;text-align:left;min-width:0;
-  transition:background var(--gzw-dur) var(--gzw-ease);
-}
-.gzw-shortcut:last-child{border-bottom:0}
-.gzw-shortcut:hover{background:var(--gzw-surface-2)}
-.gzw-shortcut-ico{width:28px;height:28px;border-radius:9px;display:grid;place-items:center;flex:none;background:var(--gzw-surface-2);color:var(--gzw-ink-2);border:1px solid var(--gzw-line-soft)}
-.gzw-shortcut-main{flex:1;min-width:0;display:flex;flex-direction:column;gap:1px}
-.gzw-shortcut-name{font-size:12.5px;color:var(--gzw-ink)}
-.gzw-shortcut-hint{font-size:10.5px;color:var(--gzw-ink-3);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.gzw-home .gzw-pagehead{padding-top:34px;padding-bottom:var(--gzw-s4)}
+.gzw-hero{display:grid;grid-template-columns:minmax(0,1.34fr) minmax(0,1fr);gap:var(--gzw-s5);align-items:start;padding:var(--gzw-s2) 0 var(--gzw-s6)}
+.gzw-ms{display:flex;flex-direction:column;gap:12px;min-width:0;
+  background:var(--gzw-surface);border:1px solid var(--gzw-line);border-radius:18px;
+  padding:26px 32px 22px;box-shadow:var(--gzw-shadow-sm)}
+.gzw-ms-top{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.gzw-ms-title{margin:0;font-family:var(--gzw-serif);font-size:25px;line-height:1.45;font-weight:600;letter-spacing:.01em;
+  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.gzw-ms-excerpt{margin:0;font-family:var(--gzw-serif);font-size:13.5px;line-height:1.95;color:var(--gzw-ink-2);
+  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.gzw-ms-rail{display:flex;gap:7px;margin-top:auto;padding-top:6px}
+.gzw-ms-step{flex:1 1 0;display:flex;flex-direction:column;gap:7px;min-width:0}
+.gzw-ms-bar{height:2px;border-radius:2px;background:var(--gzw-surface-3)}
+.gzw-ms-bar.done{background:color-mix(in srgb,var(--gzw-accent) 46%,transparent)}
+.gzw-ms-bar.active{background:var(--gzw-accent);height:3px;margin-top:-.5px}
+.gzw-ms-name{font-size:10.5px;line-height:14px;color:var(--gzw-ink-3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.gzw-ms-name.done{color:var(--gzw-ink-2)}
+.gzw-ms-name.active{color:var(--gzw-ink);font-weight:600}
+.gzw-ms-foot{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.gzw-ms-stat{font-family:var(--gzw-mono);font-size:10.5px;color:var(--gzw-ink-3);letter-spacing:-.01em}
+.gzw-ms-actions{margin-left:auto;display:flex;align-items:center;gap:8px}
+.gzw-ms-empty{border-style:dashed;box-shadow:none;justify-content:center;gap:10px;background:transparent}
+.gzw-newpanel{display:flex;flex-direction:column;gap:16px;min-width:0;
+  background:var(--gzw-surface-2);border:1px solid var(--gzw-line-soft);border-radius:18px;padding:26px 26px 24px}
+.gzw-newform{display:flex;flex-direction:column;gap:8px}
+.gzw-newpanel .gzw-input{background:var(--gzw-surface)}
+.gzw-newhint{font-size:11px;line-height:1.7;color:var(--gzw-ink-3)}
+.gzw-newrules{display:flex;flex-direction:column;gap:7px;margin:0;padding:12px 0 0;list-style:none;border-top:1px solid var(--gzw-line-soft)}
+.gzw-newlink{appearance:none;border:0;background:transparent;color:var(--gzw-ink-3);display:inline-flex;align-items:center;gap:6px;font-size:10.5px;padding:10px 0 0;cursor:pointer;text-align:left}
+.gzw-newlink:hover{color:var(--gzw-ink)}
+.gzw-newrules li{display:flex;gap:10px;font-size:11px;line-height:1.65;color:var(--gzw-ink-3)}
+.gzw-newrules b{font-family:var(--gzw-mono);font-size:9.5px;font-weight:500;color:var(--gzw-ink-3);padding-top:2px}
+.gzw-secblock{padding:var(--gzw-s6) 0 var(--gzw-s2)}
+.gzw-secthead{display:flex;align-items:baseline;gap:10px;padding-bottom:12px;border-bottom:1px solid var(--gzw-line-soft);margin-bottom:16px}
+.gzw-sectnum{font-family:var(--gzw-mono);font-size:10px;color:var(--gzw-ink-3);letter-spacing:.04em}
+.gzw-secttitle{font-size:13px;font-weight:600;color:var(--gzw-ink)}
+.gzw-sectnote{font-size:11.5px;color:var(--gzw-ink-3)}
+.gzw-pieces{display:grid;grid-template-columns:repeat(auto-fill,minmax(172px,1fr));gap:10px}
+.gzw-piece{appearance:none;text-align:left;border:1px solid var(--gzw-line);background:var(--gzw-surface);border-radius:13px;
+  padding:13px 14px 12px;display:flex;flex-direction:column;gap:7px;min-height:122px;cursor:pointer;color:inherit;
+  transition:border-color var(--gzw-dur) var(--gzw-ease),box-shadow var(--gzw-dur) var(--gzw-ease),transform var(--gzw-dur) var(--gzw-ease)}
+.gzw-piece:hover{border-color:var(--gzw-line-strong);box-shadow:var(--gzw-shadow-sm);transform:translateY(-1px)}
+.gzw-piece.current{border-color:var(--gzw-accent-line)}
+.gzw-piece-meta{display:flex;align-items:center;gap:7px;font-family:var(--gzw-mono);font-size:9.5px;color:var(--gzw-ink-3)}
+.gzw-piece-title{font-family:var(--gzw-serif);font-size:14.5px;line-height:1.55;color:var(--gzw-ink);
+  display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.gzw-piece-foot{margin-top:auto;display:flex;align-items:center;gap:5px;font-size:10.5px;color:var(--gzw-ink-3);padding-top:6px}
+.gzw-piece:hover .gzw-piece-foot{color:var(--gzw-ink)}
+.gzw-libs{display:grid;grid-template-columns:repeat(auto-fill,minmax(204px,1fr));gap:12px}
+.gzw-libtile{appearance:none;text-align:left;border:1px solid var(--gzw-line);background:var(--gzw-surface);border-radius:13px;
+  padding:14px 16px;display:flex;align-items:center;gap:12px;cursor:pointer;color:inherit;min-width:0;
+  transition:border-color var(--gzw-dur) var(--gzw-ease),box-shadow var(--gzw-dur) var(--gzw-ease)}
+.gzw-libtile:hover{border-color:var(--gzw-line-strong);box-shadow:var(--gzw-shadow-sm)}
+.gzw-libico{width:32px;height:32px;border-radius:10px;display:grid;place-items:center;flex:none;
+  background:var(--gzw-surface-2);border:1px solid var(--gzw-line-soft);color:var(--gzw-ink-2)}
+.gzw-libtile-main{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+.gzw-libtile-name{font-size:12px;color:var(--gzw-ink)}
+.gzw-libtile-hint{font-size:10.5px;color:var(--gzw-ink-3);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.gzw-libnum{font-family:var(--gzw-mono);font-size:11px;color:var(--gzw-ink-2);min-width:14px;text-align:right}
 .gzw-chevron{display:inline-flex;color:var(--gzw-ink-3);flex:none}
 
 /* ============================ 空态 / 提示 ============================ */
@@ -621,7 +644,8 @@ window.__ModuleLoader__.load({
   .gzw-sheet{padding:var(--gzw-s6) var(--gzw-s7)}
   .gzw-content{padding:0 var(--gzw-s6) 64px}
   .gzw-board{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
-  .gzw-home-actions,.gzw-home-grid{grid-template-columns:minmax(0,1fr)}
+  .gzw-hero{grid-template-columns:minmax(0,1fr)}
+  .gzw-ms{padding:24px 26px}
 }
 @container (max-width:860px){
   .gzw-content{padding:0 var(--gzw-s4) 56px}
@@ -2677,11 +2701,12 @@ window.__ModuleLoader__.load({
             'div',
             { className: 'gzw-help-grid' },
             ...[
+              ['首页', '先决定写哪一篇：接着写，或新建一篇'],
               ['总览', '当前篇、七阶段进度、下一步动作、正文与体检'],
               ['阶段', '这一阶段做什么、有什么产物、可跑的动作'],
               ['轨迹', 'Agent 干了什么：命令、工具、审阅往返与失败'],
-              ['产物', '七阶段产物清单、产出时间线与预览'],
-              ['库', 'inbox / voice / lessons / 手改记录 / 历史会话'],
+              ['产物', '七阶段产物清单与预览'],
+              ['库', '收件箱 / 文风 / 经验 / 手改 / 历史'],
               ['绑定', '把这篇绑到专属会话，通过 / 退回才会生效'],
             ].map((row) => h('div', { className: 'gzw-help-row', key: row[0] }, h('span', { className: 'gzw-kbd' }, row[0]), h('span', {}, row[1]))),
           ),
@@ -3723,11 +3748,11 @@ window.__ModuleLoader__.load({
 
       // ---------------- 四库与历史 ----------------
       const LIB_TABS = [
-        { id: 'inbox', label: '收件箱', path: 'assets/inbox.md', icon: 'note', title: '素材收件箱', hint: '还没被任何文章用过的念头；说「记一笔」会落在这里' },
-        { id: 'voice', label: '文风', path: 'assets/voice.md', icon: 'pen', title: '文风基准', hint: '写这一篇时遵守的语气与节奏' },
-        { id: 'lessons', label: '经验', path: 'assets/lessons.md', icon: 'book', title: '经验沉淀', hint: '踩过的坑与有效的做法' },
-        { id: 'learned', label: '手改', path: 'assets/learned-edits.md', icon: 'history', title: '手改记录', hint: '机器稿 → 人改稿的差异，阶段⑦回写用' },
-        { id: 'history', label: '历史', path: null, icon: 'history', title: '历史文章', hint: '工作区里的历史会话：点「看轨迹」在工作台里回放' },
+        { id: 'inbox', label: '收件箱', path: 'assets/inbox.md', icon: 'note', title: '素材收件箱', short: '没写的念头都在这', hint: '还没被任何文章用过的念头；说「记一笔」会落在这里' },
+        { id: 'voice', label: '文风', path: 'assets/voice.md', icon: 'pen', title: '文风基准', short: '语气与节奏', hint: '写这一篇时遵守的语气与节奏' },
+        { id: 'lessons', label: '经验', path: 'assets/lessons.md', icon: 'book', title: '经验沉淀', short: '踩过的坑', hint: '踩过的坑与有效的做法' },
+        { id: 'learned', label: '手改', path: 'assets/learned-edits.md', icon: 'history', title: '手改记录', short: '机器稿 → 人改稿', hint: '机器稿 → 人改稿的差异，阶段⑦回写用' },
+        { id: 'history', label: '历史', path: null, icon: 'history', title: '历史会话', short: '按会话回放', hint: '工作区里的会话：点「看轨迹」在工作台里回放' },
       ]
 
       function parseInbox(text) {
@@ -3895,172 +3920,177 @@ window.__ModuleLoader__.load({
       }
 
       // ---------------- 首页 ----------------
-      // 打开工作台的落点：先决定写哪篇（继续 / 新建），再进具体页面。
+      // 打开工作台的落点：先决定写哪篇，再进具体页面。
+      // 首页只有三层：一份当前稿（主角）、一排最近的稿、一排四库入口。
       function renderHome() {
         const inboxDoc = docs['assets/inbox.md']
         const inboxCount = inboxDoc !== undefined && inboxDoc.ok === true ? parseInbox(inboxDoc.text)['未处理'].length : null
-        const recent = candidates.slice(0, 5)
+        const recent = candidates.slice(0, 6)
+        const excerptText = (() => {
+          if (draft === null) return ''
+          const plain = excerpt(draft.body, 2)
+            .replace(/!\[[^\]]*\]\([^)]*\)/g, ' ')
+            .replace(/^[#>\-*\s]+/gm, ' ')
+            .replace(/\s+/g, ' ')
+            .trim()
+          return clip(plain, 156)
+        })()
+
+        const sectionHead = (num, title, note, action) =>
+          h(
+            'div',
+            { className: 'gzw-secthead' },
+            h('span', { className: 'gzw-sectnum' }, num),
+            h('span', { className: 'gzw-secttitle' }, title),
+            note ? h('span', { className: 'gzw-sectnote' }, note) : null,
+            h('span', { className: 'gzw-spacer' }),
+            action === undefined ? null : action,
+          )
+
         const head = pageHead({
           eyebrow: [h('span', { key: 'h' }, '工作台首页')],
           title: '今天写点什么',
           desc: '从主题开一篇新的，或接着把上一篇收尾。七阶段里确定性的事交给脚本，写作本身仍然在会话里发生。',
-          meta: metaLine([
-            h('span', { key: 'repo' }, '仓库 ', h('b', {}, repoLabel || '未定位')),
-            h('span', { key: 'bind' }, '绑定 ', h('b', {}, bindingReady ? shortId(binding.sessionId) : binding === null ? '未绑定' : '未就绪')),
-            h('span', { key: 'trace' }, '轨迹 ', h('b', {}, stats.total), ' 步'),
-            h('span', { key: 'art' }, '产物 ', h('b', {}, artifacts.length), ' 项'),
-          ]),
+          side: [
+            h('span', { key: 'bind', className: 'gzw-chip ' + (bindingReady ? 'accent' : 'warn') }, bindingReady ? '写操作就绪' : binding === null ? '未绑定会话' : '写操作未就绪'),
+            h('div', { key: 'repo', className: 'gzw-dim' }, '仓库 ' + (repoLabel || '未定位')),
+            h('div', { key: 'stat', className: 'gzw-dim' }, '轨迹 ' + stats.total + ' 步 · 产物 ' + artifacts.length + ' 项'),
+          ],
         })
 
-        const continueCard =
+        const manuscript =
           article === null
             ? h(
-                'section',
-                { className: 'gzw-home-card' },
-                h('div', { className: 'gzw-label' }, '接着写'),
-                h('div', { className: 'gzw-home-title' }, '还没有当前篇'),
-                h('div', { className: 'gzw-home-note' }, stateError || '读不到 state.md 里的当前篇。可以先用旁边新建一篇，或让 Agent 把这一篇写进 state.md。'),
+                'article',
+                { className: 'gzw-ms gzw-ms-empty' },
+                h('div', { className: 'gzw-label' }, '当前篇'),
+                h('h2', { className: 'gzw-ms-title' }, '还没有当前篇'),
+                h('p', { className: 'gzw-ms-excerpt' }, stateError || '读不到 state.md 里的当前篇。先用右边「新起一篇」，或让 Agent 把这一篇写进 state.md。'),
               )
             : h(
-                'section',
-                { className: 'gzw-home-card' },
+                'article',
+                { className: 'gzw-ms' },
                 h(
                   'div',
-                  { className: 'gzw-home-row' },
-                  h('span', { className: 'gzw-label' }, '接着写'),
-                  h(
-                    'span',
-                    { className: 'gzw-chip ' + (bindingReady ? 'accent' : 'warn') },
-                    bindingReady ? '写操作就绪' : binding === null ? '未绑定会话' : '写操作未就绪',
-                  ),
+                  { className: 'gzw-ms-top' },
+                  h('span', { className: 'gzw-label' }, '当前篇 · 阶段 ' + CIRCLED[currentStage - 1] + ' ' + STAGE_META[currentStage - 1].name),
+                  h('span', { className: 'gzw-chip ' + (bindingReady ? 'accent' : 'warn') }, bindingReady ? '已绑定 ' + shortId(binding.sessionId) : '未绑定会话'),
                 ),
-                h('div', { className: 'gzw-home-title' }, article.topic || '（state.md 未写主题）'),
+                h('h2', { className: 'gzw-ms-title' }, article.topic || '（state.md 未写主题）'),
+                excerptText === '' ? null : h('p', { className: 'gzw-ms-excerpt' }, excerptText),
                 h(
                   'div',
-                  { className: 'gzw-home-meta' },
-                  h('span', {}, '阶段 ' + CIRCLED[currentStage - 1] + ' ' + STAGE_META[currentStage - 1].name),
-                  h('span', {}, doneCount + ' / 7 完成'),
-                  draftStatsValue === null ? null : h('span', {}, num(draftStatsValue.chars) + ' 字'),
-                  draftStatsValue === null ? null : h('span', {}, draftStatsValue.paragraphs + ' 段'),
-                ),
-                h(
-                  'div',
-                  { className: 'gzw-progress-dots' },
+                  { className: 'gzw-ms-rail' },
                   ...STAGE_META.map((item) =>
-                    h('span', {
-                      key: 'hdot' + item.no,
-                      className: 'gzw-progress-dot' + (article.doneStages.has(item.no) ? ' done' : '') + (currentStage === item.no ? ' active' : ''),
-                      title: item.name,
-                    }),
+                    h(
+                      'div',
+                      { className: 'gzw-ms-step', key: 'ms' + item.no, title: item.desc },
+                      h('span', { className: 'gzw-ms-bar' + (article.doneStages.has(item.no) ? ' done' : '') + (currentStage === item.no ? ' active' : '') }),
+                      h('span', { className: 'gzw-ms-name' + (article.doneStages.has(item.no) ? ' done' : '') + (currentStage === item.no ? ' active' : '') }, item.name),
+                    ),
                   ),
                 ),
                 h(
                   'div',
-                  { className: 'gzw-home-foot' },
-                  h(Btn, { variant: 'brand', icon: 'arrow', onClick: () => setView('overview') }, '打开总览'),
-                  bindingReady
-                    ? h(Btn, { size: 'sm', variant: 'ghost', onClick: () => jumpToStage(currentStage) }, '直接进阶段')
-                    : h(Btn, { size: 'sm', variant: 'ghost', onClick: () => setView('binding') }, '绑定会话'),
+                  { className: 'gzw-ms-foot' },
+                  h('span', { className: 'gzw-ms-stat' }, draftStatsValue === null
+                    ? '还没有草稿'
+                    : (draft.meta.genre ? draft.meta.genre + ' · ' : '') + num(draftStatsValue.chars) + ' 字 · ' + draftStatsValue.paragraphs + ' 段 · 阅读 ' + draftStatsValue.readMinutes + ' 分钟'),
+                  h(
+                    'div',
+                    { className: 'gzw-ms-actions' },
+                    h(Btn, { variant: 'brand', icon: 'arrow', onClick: () => setView('overview') }, '继续写'),
+                    h(Btn, { size: 'sm', variant: 'ghost', onClick: () => jumpToStage(currentStage) }, '进阶段'),
+                  ),
                 ),
               )
 
-        const newCard = h(
-          'section',
-          { className: 'gzw-home-card' },
+        const creator = h(
+          'aside',
+          { className: 'gzw-newpanel' },
           h('div', { className: 'gzw-label' }, '新起一篇'),
           h(
             'div',
-            { className: 'gzw-home-new' },
+            { className: 'gzw-newform' },
             h('input', { className: 'gzw-input', value: newTopic, placeholder: '主题：例如「AI 搜索这一年」', onChange: (event) => setNewTopic(event.target.value) }),
-            h(Btn, { variant: 'brand', icon: 'send', onClick: () => startNewArticle(), disabled: newBusy || newTopic.trim() === '' }, newBusy ? '创建中…' : '创建并启动'),
+            h(Btn, { variant: 'brand', wide: true, icon: 'send', onClick: () => startNewArticle(), disabled: newBusy || newTopic.trim() === '' }, newBusy ? '创建中…' : '创建并启动'),
           ),
-          h('div', { className: 'gzw-home-note' }, '会开一个专用会话并把启动指令发过去；state.md 由 Agent 自己改。'),
+          h('div', { className: 'gzw-newhint' }, '会开一个专用会话，把启动指令发过去；state.md 由 Agent 自己改。'),
           h(
             'ul',
-            { className: 'gzw-home-rules' },
-            h('li', {}, '素材先行：没给过的经历、场景、细节一律不写'),
-            h('li', {}, '①②③ 每个阶段都停下来给你审一遍'),
-            h('li', {}, '发布只推草稿箱，永不自动发'),
+            { className: 'gzw-newrules' },
+            h('li', {}, h('b', {}, '01'), '素材先行：没给过的经历、场景、细节，一律不写'),
+            h('li', {}, h('b', {}, '02'), '①②③ 每个阶段都停下来给你审一遍'),
+            h('li', {}, h('b', {}, '03'), '发布只推草稿箱，永不自动发'),
+          ),
+          h(
+            'button',
+            { type: 'button', className: 'gzw-newlink', onClick: () => { setLibTab('inbox'); setView('libraries') } },
+            h(Icon, { name: 'note', size: 12 }),
+            '没想好主题？先去收件箱翻翻',
+            h('span', { className: 'gzw-chevron' }, h(Icon, { name: 'chevron', size: 10 })),
           ),
           newError === '' ? null : h('div', { className: 'gzw-error' }, newError),
         )
 
-        const recentPanel = h(
-          'section',
-          { className: 'gzw-panel' },
-          h(
-            'div',
-            { className: 'gzw-panel-head' },
-            h('div', { className: 'gzw-panel-title' }, h(Icon, { name: 'history', size: 14 }), '最近文章'),
-            h('div', { className: 'gzw-panel-sub' }, recent.length === 0 ? '还没开始写过' : '最近 ' + recent.length + ' 个会话'),
-            h('div', { className: 'gzw-panel-actions' }, h(Btn, { size: 'sm', variant: 'ghost', onClick: () => { setLibTab('history'); setView('libraries') } }, '全部')),
-          ),
-          recent.length === 0
-            ? h(Empty, { icon: 'pen', title: '还没有别的文章', text: '在上面输入一个主题，工作台会开一个专用会话。' })
-            : h(
-                'div',
-                { className: 'gzw-list' },
-                ...recent.map((row) => {
-                  const id = String(sessionIdOf(row) ?? '')
-                  const isBound = binding !== null && binding.sessionId === id
-                  return h(
-                    'div',
-                    { className: 'gzw-li', key: id || Math.random() },
-                    h(
-                      'div',
-                      { className: 'gzw-li-main' },
-                      h(
-                        'div',
-                        { className: 'gzw-li-title' },
-                        row.running === true ? h('span', { className: 'gzw-status-dot', style: { background: 'var(--gzw-warn)' } }) : null,
-                        sessionTitleOf(row),
-                        isBound ? h('span', { className: 'gzw-chip accent' }, '当前篇') : null,
-                      ),
-                      h('div', { className: 'gzw-li-sub' }, shortId(id) + '　' + relTime(row.updatedAt)),
-                    ),
-                    h('div', { className: 'gzw-li-tail' }, h(Btn, { size: 'sm', variant: 'ghost', onClick: () => { setTraceSessionId(id); setView('trace') } }, '看轨迹')),
-                  )
-                }),
+        const pieces = h(
+          'div',
+          { className: 'gzw-pieces' },
+          ...recent.map((row) => {
+            const id = String(sessionIdOf(row) ?? '')
+            const isBound = binding !== null && binding.sessionId === id
+            return h(
+              'button',
+              {
+                type: 'button',
+                className: 'gzw-piece' + (isBound ? ' current' : ''),
+                key: 'piece-' + id,
+                onClick: () => {
+                  setTraceSessionId(id)
+                  setView('trace')
+                },
+              },
+              h(
+                'span',
+                { className: 'gzw-piece-meta' },
+                row.running === true ? h('span', { className: 'gzw-status-dot', style: { background: 'var(--gzw-warn)' } }) : null,
+                h('span', {}, relTime(row.updatedAt)),
+                isBound ? h('span', { className: 'gzw-chip accent' }, '当前篇') : null,
               ),
+              h('span', { className: 'gzw-piece-title' }, sessionTitleOf(row)),
+              h('span', { className: 'gzw-piece-foot' }, h('span', {}, '看轨迹'), h('span', { className: 'gzw-chevron' }, h(Icon, { name: 'chevron', size: 11 }))),
+            )
+          }),
         )
 
-        const libPanel = h(
-          'section',
-          { className: 'gzw-panel' },
-          h(
-            'div',
-            { className: 'gzw-panel-head' },
-            h('div', { className: 'gzw-panel-title' }, h(Icon, { name: 'library', size: 14 }), '四库'),
-            h('div', { className: 'gzw-panel-sub' }, '写作之外的东西都沉在这里'),
-          ),
-          h(
-            'div',
-            { className: 'gzw-shortcuts' },
-            ...LIB_TABS.map((item) =>
-              h(
-                'button',
-                {
-                  type: 'button',
-                  className: 'gzw-shortcut',
-                  key: 'sc-' + item.id,
-                  onClick: () => {
-                    setLibTab(item.id)
-                    setView('libraries')
-                  },
+        const libTiles = h(
+          'div',
+          { className: 'gzw-libs' },
+          ...LIB_TABS.map((item) =>
+            h(
+              'button',
+              {
+                type: 'button',
+                className: 'gzw-libtile',
+                key: 'tile-' + item.id,
+                onClick: () => {
+                  setLibTab(item.id)
+                  setView('libraries')
                 },
-                h('span', { className: 'gzw-shortcut-ico' }, h(Icon, { name: item.icon, size: 14 })),
+              },
+              h('span', { className: 'gzw-libico' }, h(Icon, { name: item.icon, size: 14 })),
+              h(
+                'span',
+                { className: 'gzw-libtile-main' },
+                h('span', { className: 'gzw-libtile-name' }, item.title),
                 h(
                   'span',
-                  { className: 'gzw-shortcut-main' },
-                  h('span', { className: 'gzw-shortcut-name' }, item.title),
-                  h(
-                    'span',
-                    { className: 'gzw-shortcut-hint' },
-                    item.id === 'inbox' ? (inboxCount === null ? item.hint : inboxCount > 0 ? inboxCount + ' 条未处理' : '没有未处理') : item.hint,
-                  ),
+                  { className: 'gzw-libtile-hint' },
+                  item.id === 'inbox' && inboxCount !== null && inboxCount > 0 ? inboxCount + ' 条未处理' : item.short,
                 ),
-                h('span', { className: 'gzw-chevron' }, h(Icon, { name: 'chevron', size: 11 })),
               ),
+              item.id === 'inbox' && inboxCount !== null && inboxCount > 0 ? h('span', { className: 'gzw-libnum' }, inboxCount) : null,
+              h('span', { className: 'gzw-chevron' }, h(Icon, { name: 'chevron', size: 11 })),
             ),
           ),
         )
@@ -4070,8 +4100,21 @@ window.__ModuleLoader__.load({
           { className: 'gzw-sec gzw-home' },
           head,
           repoRoot === '' || stateError !== '' ? renderSetupGuide() : null,
-          h('div', { className: 'gzw-home-actions' }, continueCard, newCard),
-          h('div', { className: 'gzw-home-grid' }, recentPanel, libPanel),
+          h('div', { className: 'gzw-hero' }, manuscript, creator),
+          h(
+            'section',
+            { className: 'gzw-secblock' },
+            sectionHead(
+              '01',
+              '最近会话',
+              recent.length === 0 ? '每篇一个专用会话' : '每篇一个专用会话，共 ' + recent.length + ' 个',
+              h(Btn, { size: 'sm', variant: 'ghost', onClick: () => { setLibTab('history'); setView('libraries') } }, '全部'),
+            ),
+            recent.length === 0
+              ? h(Empty, { icon: 'pen', title: '还没有别的文章', text: '在上面输入一个主题，工作台会开一个专用会话。' })
+              : pieces,
+          ),
+          h('section', { className: 'gzw-secblock' }, sectionHead('02', '四库', '写作之外的东西都沉在这里'), libTiles),
           renderOnboarding(),
         )
       }
