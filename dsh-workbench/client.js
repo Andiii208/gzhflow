@@ -3154,7 +3154,7 @@ body[data-ds-dark-theme] .gzw-avatar.on{color:#04231e}
                       ),
                     ),
                     gate?.target === 'draft' ? h('div', { style: { marginBottom: 'var(--gzw-s5)' } }, renderGateViz()) : null,
-                    d === null ? null : h('div', { style: { marginBottom: 'var(--gzw-s5)' } }, h('div', { className: 'gzw-label', style: { marginBottom: 'var(--gzw-s2)' } }, '句长分布'), h(SentenceHistogram, { buckets: d.buckets })),
+                    d === null ? null : h('div', { style: { marginBottom: 'var(--gzw-s5)' } }, h('div', { className: 'gzw-label', style: { marginBottom: 'var(--gzw-s3)' } }, '文本度量'), h('div', { style: { display: 'flex', gap: 'var(--gzw-s8)', alignItems: 'flex-end', flexWrap: 'wrap' } }, h('div', { style: { flex: '0 0 300px' } }, h(SentenceHistogram, { buckets: d.buckets })), h('div', { style: { flex: '1 1 260px', minWidth: '240px' } }, h(RhythmStrip, { values: d.rhythm })))),
                     renderSheet(),
                   ),
                 ]
@@ -3786,9 +3786,9 @@ body[data-ds-dark-theme] .gzw-avatar.on{color:#04231e}
                 ? h('div', { className: 'gzw-dim' }, '等 Agent 写完这一版再来看。')
                 : h(
                     'div',
-                    {},
-                    h(SentenceHistogram, { buckets: draftStatsValue.buckets }),
-                    h('div', { style: { marginTop: 'var(--gzw-s5)' } }, h(RhythmStrip, { values: draftStatsValue.rhythm })),
+                    { style: { display: 'flex', gap: 'var(--gzw-s8)', alignItems: 'flex-end', flexWrap: 'wrap' } },
+                    h('div', { style: { flex: '0 0 300px' } }, h(SentenceHistogram, { buckets: draftStatsValue.buckets })),
+                    h('div', { style: { flex: '1 1 240px', minWidth: '220px' } }, h(RhythmStrip, { values: draftStatsValue.rhythm })),
                   ),
             ),
           ),
