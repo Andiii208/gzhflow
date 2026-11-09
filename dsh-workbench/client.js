@@ -542,6 +542,45 @@ window.__ModuleLoader__.load({
 .gzw-gauge-scale{display:flex;justify-content:space-between;width:100%;font-size:10.5px;color:var(--gzw-ink-3);margin-top:5px;font-variant-numeric:tabular-nums}
 .gzw-rhythm-cap{display:flex;justify-content:space-between;margin-top:5px;font-size:11px;color:var(--gzw-ink-3)}
 
+/* ============================ 首页 ============================ */
+.gzw-home-actions{display:grid;grid-template-columns:minmax(0,1.08fr) minmax(0,1fr);gap:var(--gzw-s4);padding:var(--gzw-s2) 0 var(--gzw-s7)}
+.gzw-home-card{
+  display:flex;flex-direction:column;gap:12px;min-width:0;
+  border:1px solid var(--gzw-line);border-radius:14px;background:var(--gzw-surface);
+  padding:22px 24px;box-shadow:var(--gzw-shadow-sm);
+}
+.gzw-home-card .gzw-label{letter-spacing:.06em}
+.gzw-home-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.gzw-home-title{
+  font-family:var(--gzw-serif);font-size:20px;line-height:1.48;font-weight:600;color:var(--gzw-ink);
+  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;
+}
+.gzw-home-meta{display:flex;align-items:center;flex-wrap:wrap;gap:6px 14px;font-size:11.5px;color:var(--gzw-ink-3)}
+.gzw-home-note{font-size:11.5px;line-height:1.7;color:var(--gzw-ink-3)}
+.gzw-home-new{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;align-items:center;margin-top:2px}
+.gzw-home-rules{margin:2px 0 0;padding:0;list-style:none;display:flex;flex-direction:column;gap:5px}
+.gzw-home-rules li{position:relative;padding-left:14px;font-size:11px;line-height:1.65;color:var(--gzw-ink-3)}
+.gzw-home-rules li::before{content:"";position:absolute;left:3px;top:8px;width:4px;height:4px;border-radius:50%;background:var(--gzw-line-strong)}
+.gzw-progress-dots{display:flex;gap:5px;margin-top:2px}
+.gzw-progress-dot{flex:1 1 0;height:3px;border-radius:99px;background:var(--gzw-surface-3)}
+.gzw-progress-dot.done{background:color-mix(in srgb,var(--gzw-accent) 46%,transparent)}
+.gzw-progress-dot.active{background:var(--gzw-accent)}
+.gzw-home-foot{display:flex;align-items:center;gap:8px;margin-top:auto;padding-top:4px}
+.gzw-home-grid{display:grid;grid-template-columns:minmax(0,1.45fr) minmax(0,1fr);gap:var(--gzw-s8);align-items:start}
+.gzw-shortcuts{display:flex;flex-direction:column;margin-top:2px}
+.gzw-shortcut{
+  appearance:none;border:0;border-bottom:1px solid var(--gzw-line-soft);background:transparent;color:inherit;
+  display:flex;align-items:center;gap:11px;padding:11px 8px;margin:0 -8px;border-radius:8px;cursor:pointer;text-align:left;min-width:0;
+  transition:background var(--gzw-dur) var(--gzw-ease);
+}
+.gzw-shortcut:last-child{border-bottom:0}
+.gzw-shortcut:hover{background:var(--gzw-surface-2)}
+.gzw-shortcut-ico{width:28px;height:28px;border-radius:9px;display:grid;place-items:center;flex:none;background:var(--gzw-surface-2);color:var(--gzw-ink-2);border:1px solid var(--gzw-line-soft)}
+.gzw-shortcut-main{flex:1;min-width:0;display:flex;flex-direction:column;gap:1px}
+.gzw-shortcut-name{font-size:12.5px;color:var(--gzw-ink)}
+.gzw-shortcut-hint{font-size:10.5px;color:var(--gzw-ink-3);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.gzw-chevron{display:inline-flex;color:var(--gzw-ink-3);flex:none}
+
 /* ============================ 空态 / 提示 ============================ */
 .gzw-empty{display:flex;flex-direction:column;align-items:center;gap:10px;padding:var(--gzw-s8) var(--gzw-s4);text-align:center;color:var(--gzw-ink-3)}
 .gzw-empty-mark{width:36px;height:36px;border-radius:11px;display:grid;place-items:center;background:var(--gzw-surface-2);color:var(--gzw-ink-3);border:1px solid var(--gzw-line-soft)}
@@ -582,6 +621,7 @@ window.__ModuleLoader__.load({
   .gzw-sheet{padding:var(--gzw-s6) var(--gzw-s7)}
   .gzw-content{padding:0 var(--gzw-s6) 64px}
   .gzw-board{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
+  .gzw-home-actions,.gzw-home-grid{grid-template-columns:minmax(0,1fr)}
 }
 @container (max-width:860px){
   .gzw-content{padding:0 var(--gzw-s4) 56px}
@@ -1674,7 +1714,7 @@ window.__ModuleLoader__.load({
       const [receipt, setReceipt] = React.useState(null)
       const [busy, setBusy] = React.useState(false)
       const [logs, setLogs] = React.useState([])
-      const [view, setView] = React.useState('overview')
+      const [view, setView] = React.useState('home')
       const [toast, setToast] = React.useState('')
       const [expandedRows, setExpandedRows] = React.useState({})
       const [noteDraft, setNoteDraft] = React.useState('')
@@ -2096,13 +2136,22 @@ window.__ModuleLoader__.load({
       }, [stageNo, artifacts.map((item) => item.path + ':' + item.mtimeMs).join('|')])
 
       React.useEffect(() => {
-        if (view !== 'libraries') return
+        if (view !== 'libraries' || readSessionId === '') return
         for (const lib of LIB_TABS) {
           if (lib.path === null) continue
-          if (docs[lib.path] === undefined) loadDoc(lib.path)
+          const doc = docs[lib.path]
+          if (doc === undefined || doc.ok !== true) loadDoc(lib.path)
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
-      }, [view])
+      }, [view, readSessionId])
+
+      React.useEffect(() => {
+        // 首页只需要 inbox 的条数；其他库等进「库」页再读
+        if (view !== 'home' || readSessionId === '') return
+        const doc = docs['assets/inbox.md']
+        if (doc === undefined || doc.ok !== true) loadDoc('assets/inbox.md')
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+      }, [view, readSessionId])
 
       // ---------------- 派生状态 ----------------
       const boundSession = binding !== null ? sessions.find((row) => sessionIdOf(row) === binding.sessionId) : undefined
@@ -3845,8 +3894,191 @@ window.__ModuleLoader__.load({
         )
       }
 
+      // ---------------- 首页 ----------------
+      // 打开工作台的落点：先决定写哪篇（继续 / 新建），再进具体页面。
+      function renderHome() {
+        const inboxDoc = docs['assets/inbox.md']
+        const inboxCount = inboxDoc !== undefined && inboxDoc.ok === true ? parseInbox(inboxDoc.text)['未处理'].length : null
+        const recent = candidates.slice(0, 5)
+        const head = pageHead({
+          eyebrow: [h('span', { key: 'h' }, '工作台首页')],
+          title: '今天写点什么',
+          desc: '从主题开一篇新的，或接着把上一篇收尾。七阶段里确定性的事交给脚本，写作本身仍然在会话里发生。',
+          meta: metaLine([
+            h('span', { key: 'repo' }, '仓库 ', h('b', {}, repoLabel || '未定位')),
+            h('span', { key: 'bind' }, '绑定 ', h('b', {}, bindingReady ? shortId(binding.sessionId) : binding === null ? '未绑定' : '未就绪')),
+            h('span', { key: 'trace' }, '轨迹 ', h('b', {}, stats.total), ' 步'),
+            h('span', { key: 'art' }, '产物 ', h('b', {}, artifacts.length), ' 项'),
+          ]),
+        })
+
+        const continueCard =
+          article === null
+            ? h(
+                'section',
+                { className: 'gzw-home-card' },
+                h('div', { className: 'gzw-label' }, '接着写'),
+                h('div', { className: 'gzw-home-title' }, '还没有当前篇'),
+                h('div', { className: 'gzw-home-note' }, stateError || '读不到 state.md 里的当前篇。可以先用旁边新建一篇，或让 Agent 把这一篇写进 state.md。'),
+              )
+            : h(
+                'section',
+                { className: 'gzw-home-card' },
+                h(
+                  'div',
+                  { className: 'gzw-home-row' },
+                  h('span', { className: 'gzw-label' }, '接着写'),
+                  h(
+                    'span',
+                    { className: 'gzw-chip ' + (bindingReady ? 'accent' : 'warn') },
+                    bindingReady ? '写操作就绪' : binding === null ? '未绑定会话' : '写操作未就绪',
+                  ),
+                ),
+                h('div', { className: 'gzw-home-title' }, article.topic || '（state.md 未写主题）'),
+                h(
+                  'div',
+                  { className: 'gzw-home-meta' },
+                  h('span', {}, '阶段 ' + CIRCLED[currentStage - 1] + ' ' + STAGE_META[currentStage - 1].name),
+                  h('span', {}, doneCount + ' / 7 完成'),
+                  draftStatsValue === null ? null : h('span', {}, num(draftStatsValue.chars) + ' 字'),
+                  draftStatsValue === null ? null : h('span', {}, draftStatsValue.paragraphs + ' 段'),
+                ),
+                h(
+                  'div',
+                  { className: 'gzw-progress-dots' },
+                  ...STAGE_META.map((item) =>
+                    h('span', {
+                      key: 'hdot' + item.no,
+                      className: 'gzw-progress-dot' + (article.doneStages.has(item.no) ? ' done' : '') + (currentStage === item.no ? ' active' : ''),
+                      title: item.name,
+                    }),
+                  ),
+                ),
+                h(
+                  'div',
+                  { className: 'gzw-home-foot' },
+                  h(Btn, { variant: 'brand', icon: 'arrow', onClick: () => setView('overview') }, '打开总览'),
+                  bindingReady
+                    ? h(Btn, { size: 'sm', variant: 'ghost', onClick: () => jumpToStage(currentStage) }, '直接进阶段')
+                    : h(Btn, { size: 'sm', variant: 'ghost', onClick: () => setView('binding') }, '绑定会话'),
+                ),
+              )
+
+        const newCard = h(
+          'section',
+          { className: 'gzw-home-card' },
+          h('div', { className: 'gzw-label' }, '新起一篇'),
+          h(
+            'div',
+            { className: 'gzw-home-new' },
+            h('input', { className: 'gzw-input', value: newTopic, placeholder: '主题：例如「AI 搜索这一年」', onChange: (event) => setNewTopic(event.target.value) }),
+            h(Btn, { variant: 'brand', icon: 'send', onClick: () => startNewArticle(), disabled: newBusy || newTopic.trim() === '' }, newBusy ? '创建中…' : '创建并启动'),
+          ),
+          h('div', { className: 'gzw-home-note' }, '会开一个专用会话并把启动指令发过去；state.md 由 Agent 自己改。'),
+          h(
+            'ul',
+            { className: 'gzw-home-rules' },
+            h('li', {}, '素材先行：没给过的经历、场景、细节一律不写'),
+            h('li', {}, '①②③ 每个阶段都停下来给你审一遍'),
+            h('li', {}, '发布只推草稿箱，永不自动发'),
+          ),
+          newError === '' ? null : h('div', { className: 'gzw-error' }, newError),
+        )
+
+        const recentPanel = h(
+          'section',
+          { className: 'gzw-panel' },
+          h(
+            'div',
+            { className: 'gzw-panel-head' },
+            h('div', { className: 'gzw-panel-title' }, h(Icon, { name: 'history', size: 14 }), '最近文章'),
+            h('div', { className: 'gzw-panel-sub' }, recent.length === 0 ? '还没开始写过' : '最近 ' + recent.length + ' 个会话'),
+            h('div', { className: 'gzw-panel-actions' }, h(Btn, { size: 'sm', variant: 'ghost', onClick: () => { setLibTab('history'); setView('libraries') } }, '全部')),
+          ),
+          recent.length === 0
+            ? h(Empty, { icon: 'pen', title: '还没有别的文章', text: '在上面输入一个主题，工作台会开一个专用会话。' })
+            : h(
+                'div',
+                { className: 'gzw-list' },
+                ...recent.map((row) => {
+                  const id = String(sessionIdOf(row) ?? '')
+                  const isBound = binding !== null && binding.sessionId === id
+                  return h(
+                    'div',
+                    { className: 'gzw-li', key: id || Math.random() },
+                    h(
+                      'div',
+                      { className: 'gzw-li-main' },
+                      h(
+                        'div',
+                        { className: 'gzw-li-title' },
+                        row.running === true ? h('span', { className: 'gzw-status-dot', style: { background: 'var(--gzw-warn)' } }) : null,
+                        sessionTitleOf(row),
+                        isBound ? h('span', { className: 'gzw-chip accent' }, '当前篇') : null,
+                      ),
+                      h('div', { className: 'gzw-li-sub' }, shortId(id) + '　' + relTime(row.updatedAt)),
+                    ),
+                    h('div', { className: 'gzw-li-tail' }, h(Btn, { size: 'sm', variant: 'ghost', onClick: () => { setTraceSessionId(id); setView('trace') } }, '看轨迹')),
+                  )
+                }),
+              ),
+        )
+
+        const libPanel = h(
+          'section',
+          { className: 'gzw-panel' },
+          h(
+            'div',
+            { className: 'gzw-panel-head' },
+            h('div', { className: 'gzw-panel-title' }, h(Icon, { name: 'library', size: 14 }), '四库'),
+            h('div', { className: 'gzw-panel-sub' }, '写作之外的东西都沉在这里'),
+          ),
+          h(
+            'div',
+            { className: 'gzw-shortcuts' },
+            ...LIB_TABS.map((item) =>
+              h(
+                'button',
+                {
+                  type: 'button',
+                  className: 'gzw-shortcut',
+                  key: 'sc-' + item.id,
+                  onClick: () => {
+                    setLibTab(item.id)
+                    setView('libraries')
+                  },
+                },
+                h('span', { className: 'gzw-shortcut-ico' }, h(Icon, { name: item.icon, size: 14 })),
+                h(
+                  'span',
+                  { className: 'gzw-shortcut-main' },
+                  h('span', { className: 'gzw-shortcut-name' }, item.title),
+                  h(
+                    'span',
+                    { className: 'gzw-shortcut-hint' },
+                    item.id === 'inbox' ? (inboxCount === null ? item.hint : inboxCount > 0 ? inboxCount + ' 条未处理' : '没有未处理') : item.hint,
+                  ),
+                ),
+                h('span', { className: 'gzw-chevron' }, h(Icon, { name: 'chevron', size: 11 })),
+              ),
+            ),
+          ),
+        )
+
+        return h(
+          'div',
+          { className: 'gzw-sec gzw-home' },
+          head,
+          repoRoot === '' || stateError !== '' ? renderSetupGuide() : null,
+          h('div', { className: 'gzw-home-actions' }, continueCard, newCard),
+          h('div', { className: 'gzw-home-grid' }, recentPanel, libPanel),
+          renderOnboarding(),
+        )
+      }
+
       // ---------------- 顶栏 / 页脚 ----------------
       const views = [
+        { id: 'home', label: '首页' },
         { id: 'overview', label: '总览' },
         { id: 'stage', label: '阶段' },
         { id: 'trace', label: '轨迹', count: stats.total },
@@ -3863,7 +4095,7 @@ window.__ModuleLoader__.load({
           { className: 'gzw-top-inner' },
           h(
             'div',
-            { className: 'gzw-brand' },
+            { className: 'gzw-brand', onClick: () => setView('home'), style: { cursor: 'pointer' }, title: '回到首页' },
             h('div', { className: 'gzw-logo' }, h(Icon, { name: 'pen', size: 14, stroke: 1.2 })),
             h('span', { className: 'gzw-brand-title' }, '公众号工作台'),
           ),
@@ -4017,7 +4249,6 @@ window.__ModuleLoader__.load({
             ),
           ),
         ),
-        renderOnboarding(),
       )
 
       return h(
@@ -4028,7 +4259,9 @@ window.__ModuleLoader__.load({
         h(
           'div',
           { className: 'gzw-content' },
-          view === 'overview'
+          view === 'home'
+            ? renderHome()
+            : view === 'overview'
             ? overview
             : view === 'stage'
               ? renderStageContent(currentStage)
@@ -4053,7 +4286,7 @@ window.__ModuleLoader__.load({
                   'div',
                   { className: 'gzw-help-list' },
                   ...[
-                    ['g 然后 1–6', '切到总览 / 阶段 / 轨迹 / 产物 / 库 / 绑定'],
+                    ['g 然后 1–7', '切到首页 / 总览 / 阶段 / 轨迹 / 产物 / 库 / 绑定'],
                     ['r', '刷新全部数据'],
                     ['a', '通过当前这一版（需先绑定会话）'],
                     ['b', '退回改稿（需先绑定会话）'],
